@@ -1,8 +1,36 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProfileView } from "@/components/ProfileView";
-import { getShare } from "@/lib/api";
+import { ViewBeacon } from "@/components/ViewBeacon";
+import { BRAND } from "@/lib/brand";
+import { getShareServer } from "@/lib/server";
 import { getTheme } from "@/lib/themes";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const profile = await getShareServer(token);
+  if (!profile) return { title: `${BRAND} — link not found` };
+
+  const who = profile.name || `@${profile.username}`;
+  const title = `${who} · ${BRAND}`;
+  const description =
+    profile.pitch ||
+    `${profile.headline} — ${profile.public_count} projects on ${BRAND}.`;
+
+  // Next automatically attaches the opengraph-image.tsx output to both
+  // openGraph and twitter; we just set the text + card type.
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "profile" },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
 
 export default async function SharedPage({
   params,
@@ -10,10 +38,10 @@ export default async function SharedPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const profile = await getShare(token);
+  const profile = await getShareServer(token);
 
   if (!profile) {
-    const theme = getTheme("neo-brutalist");
+    const theme = getTheme("midnight");
     return (
       <main
         className="proof-root flex flex-col items-center justify-center gap-6 px-6 text-center"
@@ -38,5 +66,11 @@ export default async function SharedPage({
     );
   }
 
-  return <ProfileView profile={profile} readOnly />;
+  return (
+    <>
+      {/* Counts one real browser open (client-side, not on prefetch/OG). */}
+      <ViewBeacon token={token} />
+      <ProfileView profile={profile} readOnly />
+    </>
+  );
 }

@@ -44,7 +44,10 @@ For each repository produce:
 - stat: ONE clean micro-metric from the data (stars, forks, or language count).
 - skills: up to 4 of the most relevant inferred skill tags.
 
-Also write one profile-level headline: a single identity statement, max ~10 words."""
+Also write, for the whole profile:
+- headline: a single identity statement, max ~10 words.
+- pitch: one punchy elevator-pitch sentence (~12-22 words) capturing what this \
+  person builds and is good at, grounded in their actual repositories."""
 
 
 def _repo_block(repo: Repo) -> str:
@@ -91,8 +94,8 @@ def resolve_provider(settings) -> str:
     return "rules"
 
 
-def synthesize(data: IngestResult) -> tuple[str, list[Card], str]:
-    """Return (headline, cards, generated_with).
+def synthesize(data: IngestResult) -> tuple[str, str, list[Card], str]:
+    """Return (headline, pitch, cards, generated_with).
 
     Private repos always become locked cards; only public repos go to the LLM.
     """
@@ -101,31 +104,35 @@ def synthesize(data: IngestResult) -> tuple[str, list[Card], str]:
     public = [r for r in data.repos if not r.private]
 
     headline = ""
+    pitch = ""
     generated: dict[str, GeneratedCard] = {}
     used = "rules"
 
     if public:
+        deck: GeneratedDeck | None = None
         if provider == "gemini" and settings.gemini_api_key:
             try:
                 deck = _gemini_deck(data, public, settings)
-                headline, generated, used = deck.headline, _by_repo(deck), "gemini"
+                used = "gemini"
             except Exception as exc:  # pragma: no cover
                 logger.warning("Gemini synthesis failed (%s); using rules.", exc)
         elif provider == "claude" and settings.anthropic_api_key:
             try:
                 deck = _claude_deck(data, public, settings)
-                headline, generated, used = deck.headline, _by_repo(deck), "claude"
+                used = "claude"
             except Exception as exc:  # pragma: no cover
                 logger.warning("Claude synthesis failed (%s); using rules.", exc)
 
-        if used == "rules":
+        if deck is None:
             deck = _rules_deck(data, public)
-            headline, generated = deck.headline, _by_repo(deck)
+            used = "rules"
+
+        headline, pitch, generated = deck.headline, deck.pitch, _by_repo(deck)
     else:
         headline = f"{data.name or data.username} — builder"
 
     cards = _assemble(data, generated)
-    return headline, cards, used
+    return headline, pitch, cards, used
 
 
 # --- assembly -------------------------------------------------------------
@@ -257,7 +264,11 @@ def _rules_deck(data: IngestResult, public: list[Repo]) -> GeneratedDeck:
     name = data.name or data.username
     tail = ", ".join(data.all_skills[:3])
     headline = (f"{name} — builder shipping {tail}" if tail else f"{name} — builder")[:80]
-    return GeneratedDeck(headline=headline, cards=cards)
+    pitch = (
+        f"{name} ships across {len(public)} public projects"
+        + (f", working with {tail}." if tail else ".")
+    )
+    return GeneratedDeck(headline=headline, pitch=pitch, cards=cards)
 
 
 def _default_stat(repo: Repo) -> str:

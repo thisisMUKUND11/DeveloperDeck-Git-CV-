@@ -1,3 +1,8 @@
 // Single source of truth for the product name. Change it here to rebrand.
-export const BRAND = "DevDeck";
-export const BRAND_TAGLINE = "your work, on one link";
+export const BRAND = "Stacked";
+export const BRAND_SLUG = "stacked";
+// A short explanation always shown next to the name so it never reads as a
+// bare, cryptic word.
+export const BRAND_TAGLINE = "proof-of-work from your GitHub";
+// Name + explanation, for titles and footers.
+export const BRAND_FULL = `${BRAND} — ${BRAND_TAGLINE}`;

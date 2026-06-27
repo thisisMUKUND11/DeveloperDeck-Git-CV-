@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE TABLE IF NOT EXISTS shares (
     token    TEXT PRIMARY KEY,
     data     TEXT NOT NULL,
+    views    INTEGER NOT NULL DEFAULT 0,
     created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """
@@ -41,6 +42,12 @@ def _connect() -> sqlite3.Connection:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     conn.executescript(_DDL)  # _DDL holds multiple CREATE statements
+    # Lightweight migration: add the views column to pre-existing shares tables.
+    try:
+        conn.execute("ALTER TABLE shares ADD COLUMN views INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # column already exists
     return conn
 
 
@@ -94,3 +101,32 @@ def get_share(token: str) -> Profile | None:
     if not row:
         return None
     return Profile.model_validate_json(row[0])
+
+
+def bump_share_view(token: str) -> int | None:
+    """Increment and return the view count, or None if the token doesn't exist."""
+    conn = _connect()
+    try:
+        cur = conn.execute(
+            "UPDATE shares SET views = views + 1 WHERE token = ?", (token,)
+        )
+        conn.commit()
+        if cur.rowcount == 0:
+            return None
+        row = conn.execute(
+            "SELECT views FROM shares WHERE token = ?", (token,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return row[0] if row else None
+
+
+def share_views(token: str) -> int | None:
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT views FROM shares WHERE token = ?", (token,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return row[0] if row else None

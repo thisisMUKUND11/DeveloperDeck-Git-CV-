@@ -23,6 +23,10 @@ export interface Profile {
   bio: string | null;
   theme: string;
   headline: string;
+  pitch: string;
+  top_skills: string[];
+  total_stars: number;
+  language_count: number;
   cards: Card[];
   public_count: number;
   private_count: number;
@@ -81,4 +85,21 @@ export async function getShare(token: string): Promise<Profile | null> {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Failed to load shared link (${res.status})`);
   return res.json();
+}
+
+export async function recordView(token: string): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/share/${token}/view`, { method: "POST" });
+  } catch {
+    /* analytics is best-effort — never block the view */
+  }
+}
+
+export async function getShareStats(token: string): Promise<number> {
+  const res = await fetch(`${API_BASE}/api/share/${token}/stats`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return (data.views as number) ?? 0;
 }

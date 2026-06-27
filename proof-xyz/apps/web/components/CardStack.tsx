@@ -7,27 +7,21 @@ import {
   useTransform,
   type PanInfo,
 } from "framer-motion";
-import { useEffect, useState } from "react";
-
-import type { Card } from "@/lib/api";
-import type { Theme } from "@/lib/themes";
-import { ProofCard } from "./ProofCard";
+import { useEffect, useState, type ReactNode } from "react";
 
 const SWIPE_THRESHOLD = 80;
 const FLING_VELOCITY = 450;
 
-/** The front, draggable card. Its own motion value drives the live tilt — kept
+/** The front, draggable slide. Its motion value drives the live tilt — kept
  *  separate from the enter/exit animation so the two never fight. Vertical
  *  scrolling inside the card is preserved via dragDirectionLock. */
-function DraggableCard({
-  card,
-  theme,
+function DraggableSlide({
+  children,
   canPrev,
   canNext,
   onCommit,
 }: {
-  card: Card;
-  theme: Theme;
+  children: ReactNode;
   canPrev: boolean;
   canNext: boolean;
   onCommit: (dir: 1 | -1) => void;
@@ -42,7 +36,6 @@ function DraggableCard({
     const vx = info.velocity.x;
     if (canNext && (dx < -SWIPE_THRESHOLD || vx < -FLING_VELOCITY)) onCommit(1);
     else if (canPrev && (dx > SWIPE_THRESHOLD || vx > FLING_VELOCITY)) onCommit(-1);
-    // Otherwise dragConstraints snaps it back to centre automatically.
   };
 
   return (
@@ -56,11 +49,13 @@ function DraggableCard({
       onDragEnd={onDragEnd}
       whileDrag={{ scale: 1.02 }}
     >
-      <ProofCard card={card} theme={theme} />
+      {children}
+      {/* Hints sit at the vertical centre of the card edges so they never
+          overlap the header (repo name / stat badge). */}
       {canNext && (
         <motion.div
           style={{ opacity: nextHint }}
-          className="pointer-events-none absolute right-4 top-4 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-white"
+          className="pointer-events-none absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-white shadow-lg"
         >
           NEXT →
         </motion.div>
@@ -68,7 +63,7 @@ function DraggableCard({
       {canPrev && (
         <motion.div
           style={{ opacity: prevHint }}
-          className="pointer-events-none absolute left-4 top-4 rounded-full bg-[var(--ink)] px-3 py-1 text-xs font-bold text-[var(--bg)]"
+          className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-[var(--ink)] px-3 py-1 text-xs font-bold text-[var(--bg)] shadow-lg"
         >
           ← BACK
         </motion.div>
@@ -90,26 +85,25 @@ function ArrowButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      aria-label={dir === 1 ? "Next card" : "Previous card"}
-      className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--ink)]/20 bg-[var(--surface)] text-lg text-[var(--ink)] shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-25 sm:flex"
+      aria-label={dir === 1 ? "Next" : "Previous"}
+      className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--ink)]/20 bg-[var(--surface)] text-lg text-[var(--ink)] shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-25 sm:flex"
     >
       {dir === 1 ? "→" : "←"}
     </button>
   );
 }
 
-export function CardStack({ cards, theme }: { cards: Card[]; theme: Theme }) {
+export function CardStack({ slides }: { slides: ReactNode[] }) {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(0);
 
   const go = (delta: 1 | -1) => {
     const target = index + delta;
-    if (target < 0 || target > cards.length - 1) return;
+    if (target < 0 || target > slides.length - 1) return;
     setDir(delta);
     setIndex(target);
   };
 
-  // Keyboard navigation — clearly intuitive on desktop.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") go(1);
@@ -119,20 +113,19 @@ export function CardStack({ cards, theme }: { cards: Card[]; theme: Theme }) {
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const atEnd = index >= cards.length - 1;
+  const atEnd = index >= slides.length - 1;
   const atStart = index <= 0;
-  const showDots = cards.length <= 12;
+  const showDots = slides.length <= 12;
 
   return (
     <div className="flex w-full flex-col items-center gap-5">
-      <div className="flex w-full items-center justify-center gap-2 sm:gap-4">
+      <div className="flex w-full items-center justify-center gap-2 sm:gap-3">
         <ArrowButton dir={-1} disabled={atStart} onClick={() => go(-1)} />
 
-        <div className="relative h-[66vh] max-h-[520px] min-h-[400px] w-full max-w-[360px]">
-          {/* Layered depth behind the active card. */}
-          {cards[index + 1] && (
+        <div className="relative h-[66vh] max-h-[520px] min-h-[400px] w-full max-w-[340px]">
+          {slides[index + 1] && (
             <div className="pointer-events-none absolute inset-0 translate-y-3 scale-[0.955] opacity-50">
-              <ProofCard card={cards[index + 1]} theme={theme} />
+              {slides[index + 1]}
             </div>
           )}
 
@@ -146,13 +139,9 @@ export function CardStack({ cards, theme }: { cards: Card[]; theme: Theme }) {
               exit={{ x: dir >= 0 ? -280 : 280, opacity: 0 }}
               transition={{ type: "spring", stiffness: 420, damping: 36 }}
             >
-              <DraggableCard
-                card={cards[index]}
-                theme={theme}
-                canPrev={!atStart}
-                canNext={!atEnd}
-                onCommit={go}
-              />
+              <DraggableSlide canPrev={!atStart} canNext={!atEnd} onCommit={go}>
+                {slides[index]}
+              </DraggableSlide>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -162,10 +151,10 @@ export function CardStack({ cards, theme }: { cards: Card[]; theme: Theme }) {
 
       {showDots && (
         <div className="flex flex-wrap justify-center gap-1.5">
-          {cards.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
-              aria-label={`Go to card ${i + 1}`}
+              aria-label={`Go to slide ${i + 1}`}
               onClick={() => {
                 setDir(i > index ? 1 : -1);
                 setIndex(i);
@@ -183,7 +172,7 @@ export function CardStack({ cards, theme }: { cards: Card[]; theme: Theme }) {
 
       <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
         <span className="font-mono">
-          {index + 1} / {cards.length}
+          {index + 1} / {slides.length}
         </span>
         <span className="hidden sm:inline">· swipe, use ← → keys, or the arrows</span>
         <span className="sm:hidden">· swipe to explore</span>

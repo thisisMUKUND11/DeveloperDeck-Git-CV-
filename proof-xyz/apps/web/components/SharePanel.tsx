@@ -1,9 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import QRCode from "qrcode";
 import { useMemo, useState } from "react";
 
-import { createShare, type Card } from "@/lib/api";
+import { createShare, getShareStats, type Card } from "@/lib/api";
+import { BRAND_SLUG } from "@/lib/brand";
 
 function shareBase() {
   const env = process.env.NEXT_PUBLIC_PUBLIC_BASE_URL;
@@ -26,13 +28,25 @@ export function SharePanel({
     () => new Set(shareable.map((c) => c.repo)),
   );
   const [link, setLink] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
+  const [views, setViews] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const toggle = (repo: string) => {
-    setLink(null); // selection changed → any prior link is stale
+  const reset = () => {
+    setLink(null);
+    setToken(null);
+    setQr(null);
+    setShowQr(false);
+    setViews(null);
     setCopied(false);
+  };
+
+  const toggle = (repo: string) => {
+    reset();
     setSelected((prev) => {
       const next = new Set(prev);
       next.has(repo) ? next.delete(repo) : next.add(repo);
@@ -42,32 +56,37 @@ export function SharePanel({
 
   const allOn = selected.size === shareable.length;
   const setAll = (on: boolean) => {
-    setLink(null);
-    setCopied(false);
+    reset();
     setSelected(on ? new Set(shareable.map((c) => c.repo)) : new Set());
   };
 
-  // One action: mint a fresh link AND copy it in the same click.
   const copyLink = async () => {
     if (selected.size === 0) return;
     setBusy(true);
     setError(null);
     try {
-      const token = await createShare(username, [...selected], theme);
-      const url = `${shareBase()}/s/${token}`;
+      const tok = await createShare(username, [...selected], theme);
+      const url = `${shareBase()}/s/${tok}`;
+      setToken(tok);
       setLink(url);
+      setViews(0);
+      QRCode.toDataURL(url, { width: 240, margin: 1 }).then(setQr).catch(() => {});
       try {
         await navigator.clipboard.writeText(url);
         setCopied(true);
         setTimeout(() => setCopied(false), 2200);
       } catch {
-        /* clipboard blocked — link is shown below for manual copy */
+        /* clipboard blocked — link shown below for manual copy */
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create link");
     } finally {
       setBusy(false);
     }
+  };
+
+  const refreshViews = async () => {
+    if (token) setViews(await getShareStats(token));
   };
 
   return (
@@ -101,7 +120,7 @@ export function SharePanel({
                 </button>
               </div>
 
-              <div className="proof-scroll flex max-h-52 flex-col gap-1.5 overflow-y-auto pr-1">
+              <div className="proof-scroll flex max-h-[min(60vh,30rem)] flex-col gap-1.5 overflow-y-auto pr-1">
                 {shareable.map((c) => {
                   const on = selected.has(c.repo);
                   return (
@@ -156,13 +175,49 @@ export function SharePanel({
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col gap-1.5"
+                  className="flex flex-col gap-2"
                 >
                   <div className="flex items-center overflow-hidden rounded-xl border border-[var(--ink)]/15 bg-[var(--bg)] px-3 py-2.5">
                     <span className="truncate font-mono text-xs text-[var(--ink)]">
                       {link.replace(/^https?:\/\//, "")}
                     </span>
                   </div>
+
+                  {/* analytics + QR controls */}
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <button
+                      onClick={refreshViews}
+                      className="flex items-center gap-1.5 text-[var(--muted)] transition hover:text-[var(--ink)]"
+                    >
+                      👁 Opened {views ?? 0} {views === 1 ? "time" : "times"}
+                      <span className="text-[var(--accent)]">↻</span>
+                    </button>
+                    <button
+                      onClick={() => setShowQr((s) => !s)}
+                      className="font-semibold text-[var(--accent)]"
+                    >
+                      {showQr ? "Hide QR" : "Show QR"}
+                    </button>
+                  </div>
+
+                  {showQr && qr && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex flex-col items-center gap-2 rounded-xl bg-white p-3"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={qr} alt="QR code for your link" className="h-40 w-40" />
+                      <a
+                        href={qr}
+                        download={`${username}-${BRAND_SLUG}-qr.png`}
+                        className="text-xs font-semibold text-[var(--accent)]"
+                      >
+                        Download QR ↓
+                      </a>
+                    </motion.div>
+                  )}
+
                   <p className="text-[11px] text-[var(--muted)]">
                     Paste it on your résumé. Each link is unique and only reveals the
                     selected projects — change the picks and copy again for a new one.

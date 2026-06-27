@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-import { BRAND } from "@/lib/brand";
+import { BRAND, BRAND_TAGLINE } from "@/lib/brand";
 import { THEMES, getTheme } from "@/lib/themes";
 import { GenerateForm } from "./GenerateForm";
 
@@ -40,10 +40,15 @@ export function Landing() {
 
       <div className="relative flex w-full max-w-lg flex-col items-center gap-9 text-center">
         <div className="flex flex-col items-center gap-5">
-          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[var(--ink)]/20 bg-[var(--surface)] px-3.5 py-1.5 font-display text-xs font-semibold tracking-wide text-[var(--ink)]">
-            <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-            {BRAND}
-          </span>
+          <div className="animate-fade-up flex flex-col items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--ink)]/20 bg-[var(--surface)] px-3.5 py-1.5 font-display text-sm font-semibold tracking-wide text-[var(--ink)]">
+              <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
+              {BRAND}
+            </span>
+            <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+              {BRAND_TAGLINE}
+            </span>
+          </div>
 
           <h1
             className="animate-fade-up font-display text-[2.6rem] font-bold leading-[1.05] sm:text-5xl md:text-[3.4rem]"
@@ -74,7 +79,7 @@ export function Landing() {
           >
             We read your repositories — the languages, the dependencies, the
             READMEs — and turn them into a swipeable deck a recruiter actually
-            finishes. In about 15 seconds.
+            finishes. In about 30 seconds.
           </p>
         </div>
 

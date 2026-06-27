@@ -10,7 +10,10 @@ body {
 
 body {
   font-family: var(--font-body), system-ui, sans-serif;
-  overflow-x: hidden;
+  /* `clip` (not `hidden`) prevents horizontal overflow WITHOUT turning body
+     into a scroll container — otherwise position:sticky (the desktop sidebar)
+     silently breaks. */
+  overflow-x: clip;
 }
 
 /* The themed surface variables are applied per-theme inline (see themes.ts).
@@ -50,6 +53,28 @@ h2 {
     color-mix(in srgb, var(--muted) 12%, transparent) 75%
   );
   background-size: 200% 100%;
+}
+
+@media print {
+  /* Physical page margins for the exported PDF. */
+  @page {
+    size: A4;
+    margin: 16mm 15mm;
+  }
+  /* Drop the themed/gradient background so the PDF is clean white, and remove
+     the on-screen padding (the @page margin now provides the page edges). */
+  html,
+  body,
+  .proof-root {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  /* Render accent colours and rules faithfully in print. */
+  .print-sheet {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

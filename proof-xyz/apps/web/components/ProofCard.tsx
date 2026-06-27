@@ -37,10 +37,21 @@ function Section({ label, points }: { label: string; points: string[] }) {
   );
 }
 
-export function ProofCard({ card, theme }: { card: Card; theme: Theme }) {
+export function ProofCard({
+  card,
+  theme,
+  variant = "deck",
+}: {
+  card: Card;
+  theme: Theme;
+  // "deck" = fills the swipe stack (fixed height, scrolling body).
+  // "grid" = natural height for a desktop grid (no internal scroll).
+  variant?: "deck" | "grid";
+}) {
+  const grid = variant === "grid";
   return (
     <div
-      className={`flex h-full w-full flex-col bg-[var(--surface)] ${theme.cardClass} ${theme.fontClass}`}
+      className={`flex w-full flex-col bg-[var(--surface)] ${grid ? "" : "h-full"} ${theme.cardClass} ${theme.fontClass}`}
     >
       {/* Fixed header — never scrolls, never overlapped. */}
       <div className="flex items-start justify-between gap-3 border-b border-[var(--ink)]/10 p-6 pb-4">
@@ -57,9 +68,13 @@ export function ProofCard({ card, theme }: { card: Card; theme: Theme }) {
         )}
       </div>
 
-      {/* Scrollable body — overflow stays inside the card, so content can't
-          spill over the chrome or the next card. */}
-      <div className="proof-scroll flex-1 overflow-y-auto p-6 pt-4">
+      {/* Body. In the deck it scrolls inside the fixed-height card; in a grid
+          it flows to natural height. */}
+      <div
+        className={
+          grid ? "p-6 pt-4" : "proof-scroll flex-1 overflow-y-auto p-6 pt-4"
+        }
+      >
         {card.locked ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
             <span className="text-3xl">🔒</span>

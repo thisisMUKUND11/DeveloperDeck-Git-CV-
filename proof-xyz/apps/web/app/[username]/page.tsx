@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { ProfileView } from "@/components/ProfileView";
-import { getProfile } from "@/lib/api";
+import { getProfileServer } from "@/lib/server";
 import { getTheme } from "@/lib/themes";
 
 export default async function ProfilePage({
@@ -10,7 +10,7 @@ export default async function ProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const profile = await getProfile(username);
+  const profile = await getProfileServer(username);
 
   if (!profile) {
     const theme = getTheme("neo-brutalist");
@@ -27,7 +27,7 @@ export default async function ProfilePage({
               <span className="text-[var(--accent)]">@{username}</span>
             </h1>
             <p className="max-w-xs text-[var(--muted)]">
-              This profile hasn’t been generated. Build it in ~15 seconds.
+              This profile hasn’t been generated. Build it in ~30 seconds.
             </p>
           </div>
           <Link

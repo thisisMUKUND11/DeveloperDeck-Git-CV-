@@ -1,3 +1,4 @@
+
 """Async GitHub ingestion.
 
 Works against the public REST API with no auth (rate-limited to 60 req/hr).

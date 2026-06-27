@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, Space_Grotesk } from "next/font/google";
-import { BRAND } from "@/lib/brand";
+import { BRAND_FULL } from "@/lib/brand";
 import "./globals.css";
 
 // Display: geometric, confident — headlines and card titles.
@@ -20,7 +20,7 @@ const serif = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: `${BRAND} — your work, on one link`,
+  title: BRAND_FULL,
   description:
     "Turn your GitHub into a swipeable, recruiter-ready proof-of-work portfolio.",
 };

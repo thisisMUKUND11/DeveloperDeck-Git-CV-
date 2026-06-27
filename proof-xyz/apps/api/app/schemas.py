@@ -69,6 +69,10 @@ class GeneratedDeck(BaseModel):
     headline: str = Field(
         description="A 1-line identity statement for the whole profile. Confident, builder-focused, no fluff."
     )
+    pitch: str = Field(
+        default="",
+        description="A single punchy elevator-pitch sentence for the whole person (~12-22 words), grounded in their actual work.",
+    )
     cards: list[GeneratedCard]
 
 
@@ -98,8 +102,12 @@ class Profile(BaseModel):
     name: str | None = None
     avatar_url: str | None = None
     bio: str | None = None
-    theme: str = "neo-brutalist"
+    theme: str = "midnight"
     headline: str = ""
+    pitch: str = ""
+    top_skills: list[str] = Field(default_factory=list)
+    total_stars: int = 0
+    language_count: int = 0
     cards: list[Card] = Field(default_factory=list)
     public_count: int = 0
     private_count: int = 0
@@ -112,7 +120,7 @@ class Profile(BaseModel):
 
 class GenerateRequest(BaseModel):
     username: str
-    theme: str = "neo-brutalist"
+    theme: str = "midnight"
     # Optional token to lift rate limits / read private repos for this run.
     token: str | None = None
 
@@ -121,4 +129,4 @@ class ShareRequest(BaseModel):
     username: str
     # Repo names the owner chose to include in this shared link.
     repos: list[str] = Field(default_factory=list)
-    theme: str = "neo-brutalist"
+    theme: str = "midnight"

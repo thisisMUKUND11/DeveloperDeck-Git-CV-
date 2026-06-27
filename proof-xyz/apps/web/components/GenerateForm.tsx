@@ -114,7 +114,7 @@ export function GenerateForm({ theme }: { theme: string }) {
         type="submit"
         className="rounded-2xl bg-[var(--accent)] py-4 font-display text-lg font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-[0.98]"
       >
-        Build my deck →
+        Get Stacked →
       </button>
 
       {error && (

@@ -49,7 +49,13 @@ async def _generate(username: str, theme: str, token: str | None) -> Profile:
             detail = "GitHub rate limit hit — add a token to raise the limit."
         raise HTTPException(status_code=502, detail=detail)
 
-    headline, cards, generated_with = synth.synthesize(data)
+    headline, pitch, cards, generated_with = synth.synthesize(data)
+
+    # Aggregate stats for the TL;DR intro card (from raw GitHub facts).
+    public_repos = [r for r in data.repos if not r.private]
+    total_stars = sum(r.stars for r in public_repos)
+    languages = {lang for r in public_repos for lang in r.languages}
+
     profile = Profile(
         username=data.username,
         name=data.name,
@@ -57,6 +63,10 @@ async def _generate(username: str, theme: str, token: str | None) -> Profile:
         bio=data.bio,
         theme=theme,
         headline=headline,
+        pitch=pitch,
+        top_skills=data.all_skills[:5],
+        total_stars=total_stars,
+        language_count=len(languages),
         cards=cards,
         public_count=sum(1 for c in cards if not c.locked),
         private_count=sum(1 for c in cards if c.locked),
@@ -101,6 +111,9 @@ async def create_share(req: ShareRequest):
     if not selected:
         raise HTTPException(status_code=400, detail="Select at least one public project to share.")
 
+    # Recompute the hero stat from just the selected cards' languages.
+    sel_languages = {lang for c in selected for lang in c.languages}
+
     snapshot = Profile(
         username=profile.username,
         name=profile.name,
@@ -108,6 +121,10 @@ async def create_share(req: ShareRequest):
         bio=profile.bio,
         theme=req.theme or profile.theme,
         headline=profile.headline,
+        pitch=profile.pitch,
+        top_skills=profile.top_skills,
+        total_stars=profile.total_stars,
+        language_count=len(sel_languages) or profile.language_count,
         cards=selected,
         public_count=len(selected),
         private_count=0,
@@ -123,10 +140,28 @@ async def create_share(req: ShareRequest):
 
 @app.get("/api/share/{token}", response_model=Profile)
 async def get_share(token: str):
+    # Read-only: does NOT count a view (page render + OG image both hit this).
     snapshot = store.get_share(token)
     if not snapshot:
         raise HTTPException(status_code=404, detail="Share link not found or expired.")
     return snapshot
+
+
+@app.post("/api/share/{token}/view")
+async def record_view(token: str):
+    """Count one real browser open (fired client-side, not on prefetch/OG)."""
+    views = store.bump_share_view(token)
+    if views is None:
+        raise HTTPException(status_code=404, detail="Share link not found.")
+    return {"views": views}
+
+
+@app.get("/api/share/{token}/stats")
+async def share_stats(token: str):
+    views = store.share_views(token)
+    if views is None:
+        raise HTTPException(status_code=404, detail="Share link not found.")
+    return {"views": views}
 
 
 @app.get("/api/auth/github/login")
