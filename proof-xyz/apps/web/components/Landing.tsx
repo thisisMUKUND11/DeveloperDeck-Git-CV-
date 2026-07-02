@@ -40,14 +40,21 @@ export function Landing() {
 
       <div className="relative flex w-full max-w-lg flex-col items-center gap-9 text-center">
         <div className="flex flex-col items-center gap-5">
-          <div className="animate-fade-up flex flex-col items-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--ink)]/20 bg-[var(--surface)] px-3.5 py-1.5 font-display text-sm font-semibold tracking-wide text-[var(--ink)]">
-              <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-              {BRAND}
-            </span>
-            <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-              {BRAND_TAGLINE}
-            </span>
+          <div className="animate-fade-up flex flex-col items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/devreel-logo.png"
+              alt={`${BRAND} logo`}
+              className="h-20 w-20 rounded-[22px] object-cover shadow-[0_10px_40px_-10px_var(--accent)] ring-1 ring-white/10"
+            />
+            <div className="flex flex-col items-center gap-1">
+              <span className="font-display text-xl font-bold tracking-tight text-[var(--ink)]">
+                {BRAND}
+              </span>
+              <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+                {BRAND_TAGLINE}
+              </span>
+            </div>
           </div>
 
           <h1
