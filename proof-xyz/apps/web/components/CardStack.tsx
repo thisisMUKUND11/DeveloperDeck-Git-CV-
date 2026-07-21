@@ -116,14 +116,48 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
 
   const atEnd = index >= slides.length - 1;
   const atStart = index <= 0;
-  const showDots = slides.length <= 12;
+
+  const jumpTo = (i: number) => {
+    if (i === index) return;
+    setDir(i > index ? 1 : -1);
+    setIndex(i);
+  };
 
   return (
     <div className="flex w-full flex-col items-center gap-5">
+      {/* Story-style segmented progress bar: fills up to the current slide and
+          each segment is tappable to jump. Reads as a "reel" and doubles as the
+          position indicator (replaces the old dots). */}
+      <div className="flex w-full max-w-[340px] gap-1.5">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => jumpTo(i)}
+            aria-label={`Go to slide ${i + 1}`}
+            className="group flex-1 py-1.5"
+          >
+            <span className="block h-1 overflow-hidden rounded-full bg-[var(--ink)]/12">
+              <motion.span
+                className="block h-full rounded-full bg-[var(--accent)]"
+                initial={false}
+                animate={{ width: i <= index ? "100%" : "0%" }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              />
+            </span>
+          </button>
+        ))}
+      </div>
+
       <div className="flex w-full items-center justify-center gap-2 sm:gap-3">
         <ArrowButton dir={-1} disabled={atStart} onClick={() => go(-1)} />
 
         <div className="relative h-[66vh] max-h-[520px] min-h-[400px] w-full max-w-[340px]">
+          {/* Two peeked cards behind the top one give the stack real depth. */}
+          {slides[index + 2] && (
+            <div className="pointer-events-none absolute inset-0 translate-y-6 scale-[0.9] opacity-25">
+              {slides[index + 2]}
+            </div>
+          )}
           {slides[index + 1] && (
             <div className="pointer-events-none absolute inset-0 translate-y-3 scale-[0.955] opacity-50">
               {slides[index + 1]}
@@ -135,9 +169,9 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
               key={index}
               className="absolute inset-0"
               custom={dir}
-              initial={{ x: dir >= 0 ? 280 : -280, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: dir >= 0 ? -280 : 280, opacity: 0 }}
+              initial={{ x: dir >= 0 ? 280 : -280, opacity: 0, rotate: dir >= 0 ? 4 : -4 }}
+              animate={{ x: 0, opacity: 1, rotate: 0 }}
+              exit={{ x: dir >= 0 ? -280 : 280, opacity: 0, rotate: dir >= 0 ? -4 : 4 }}
               transition={{ type: "spring", stiffness: 420, damping: 36 }}
             >
               <DraggableSlide canPrev={!atStart} canNext={!atEnd} onCommit={go}>
@@ -169,38 +203,12 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
         </button>
       </div>
 
-      {showDots && (
-        <div className="flex flex-wrap justify-center gap-1">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              aria-label={`Go to slide ${i + 1}`}
-              onClick={() => {
-                setDir(i > index ? 1 : -1);
-                setIndex(i);
-              }}
-              // Generous padding = a bigger touch target than the visible dot.
-              className="flex items-center justify-center p-2"
-            >
-              <span
-                className="block h-2 rounded-full transition-all"
-                style={{
-                  width: i === index ? 22 : 8,
-                  background: i === index ? "var(--accent)" : "var(--muted)",
-                  opacity: i === index ? 1 : 0.4,
-                }}
-              />
-            </button>
-          ))}
-        </div>
-      )}
-
       <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
         <span className="font-mono">
           {index + 1} / {slides.length}
         </span>
         <span className="hidden sm:inline">· swipe, use ← → keys, or the arrows</span>
-        <span className="sm:hidden">· tap the buttons, dots, or swipe</span>
+        <span className="sm:hidden">· tap Next, the bar, or swipe</span>
       </div>
     </div>
   );
