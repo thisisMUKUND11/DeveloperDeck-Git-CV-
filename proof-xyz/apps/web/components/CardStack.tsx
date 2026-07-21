@@ -9,8 +9,9 @@ import {
 } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 
-const SWIPE_THRESHOLD = 80;
-const FLING_VELOCITY = 450;
+// Kept intentionally low so a short, gentle swipe still registers on phones.
+const SWIPE_THRESHOLD = 55;
+const FLING_VELOCITY = 300;
 
 /** The front, draggable slide. Its motion value drives the live tilt — kept
  *  separate from the enter/exit animation so the two never fight. Vertical
@@ -149,8 +150,27 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
         <ArrowButton dir={1} disabled={atEnd} onClick={() => go(1)} />
       </div>
 
+      {/* Mobile: explicit Back / Next buttons so navigation never depends on
+          the swipe gesture (the side arrows are hidden below the sm breakpoint). */}
+      <div className="flex w-full max-w-[340px] items-center gap-3 sm:hidden">
+        <button
+          onClick={() => go(-1)}
+          disabled={atStart}
+          className="flex-1 rounded-xl border border-[var(--ink)]/20 bg-[var(--surface)] py-3 font-display text-sm font-semibold text-[var(--ink)] transition active:scale-95 disabled:opacity-30"
+        >
+          ← Back
+        </button>
+        <button
+          onClick={() => go(1)}
+          disabled={atEnd}
+          className="flex-1 rounded-xl bg-[var(--accent)] py-3 font-display text-sm font-semibold text-white shadow-md shadow-[var(--accent)]/25 transition active:scale-95 disabled:opacity-30"
+        >
+          Next →
+        </button>
+      </div>
+
       {showDots && (
-        <div className="flex flex-wrap justify-center gap-1.5">
+        <div className="flex flex-wrap justify-center gap-1">
           {slides.map((_, i) => (
             <button
               key={i}
@@ -159,13 +179,18 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
                 setDir(i > index ? 1 : -1);
                 setIndex(i);
               }}
-              className="h-2 rounded-full transition-all"
-              style={{
-                width: i === index ? 22 : 8,
-                background: i === index ? "var(--accent)" : "var(--muted)",
-                opacity: i === index ? 1 : 0.4,
-              }}
-            />
+              // Generous padding = a bigger touch target than the visible dot.
+              className="flex items-center justify-center p-2"
+            >
+              <span
+                className="block h-2 rounded-full transition-all"
+                style={{
+                  width: i === index ? 22 : 8,
+                  background: i === index ? "var(--accent)" : "var(--muted)",
+                  opacity: i === index ? 1 : 0.4,
+                }}
+              />
+            </button>
           ))}
         </div>
       )}
@@ -175,7 +200,7 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
           {index + 1} / {slides.length}
         </span>
         <span className="hidden sm:inline">· swipe, use ← → keys, or the arrows</span>
-        <span className="sm:hidden">· swipe to explore</span>
+        <span className="sm:hidden">· tap the buttons, dots, or swipe</span>
       </div>
     </div>
   );
