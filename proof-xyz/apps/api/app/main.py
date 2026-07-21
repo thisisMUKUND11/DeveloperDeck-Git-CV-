@@ -206,5 +206,5 @@ async def github_callback(code: str):
         username = me.json()["login"]
 
     # Ingest immediately so the user lands on a ready profile.
-    await _generate(username, theme="neo-brutalist", token=access_token)
+    await _generate(username, theme="midnight", token=access_token)
     return RedirectResponse(f"{settings.web_redirect_url}/{username}")

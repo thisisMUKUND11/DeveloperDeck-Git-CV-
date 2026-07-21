@@ -8,9 +8,12 @@ body {
   margin: 0;
 }
 
-/* Smooth in-page scrolling for the landing "how it works" / "try it now" links. */
 html {
+  /* Smooth in-page scrolling for the landing "how it works" / "try it now" links. */
   scroll-behavior: smooth;
+  /* Stop the mobile browser's pull-to-refresh from firing when a downward drag
+     on the swipe deck reaches the top of the page (it was reloading the page). */
+  overscroll-behavior-y: contain;
 }
 
 body {
@@ -19,6 +22,7 @@ body {
      into a scroll container — otherwise position:sticky (the desktop sidebar)
      silently breaks. */
   overflow-x: clip;
+  overscroll-behavior-y: contain;
 }
 
 /* The themed surface variables are applied per-theme inline (see themes.ts).

@@ -13,7 +13,7 @@ export default async function ProfilePage({
   const profile = await getProfileServer(username);
 
   if (!profile) {
-    const theme = getTheme("neo-brutalist");
+    const theme = getTheme("midnight");
     return (
       <main
         className="proof-root flex flex-col items-center justify-center gap-6 px-6 text-center"
