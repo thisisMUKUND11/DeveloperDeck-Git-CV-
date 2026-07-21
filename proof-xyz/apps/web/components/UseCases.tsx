@@ -90,6 +90,21 @@ export function UseCases() {
           </h2>
         </div>
 
+        {/* Highlighted recruiter angle: no share link needed at all. */}
+        <div className="flex flex-col gap-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/10 p-6 sm:flex-row sm:items-center sm:gap-5">
+          <span className="text-3xl">🔎</span>
+          <div className="flex flex-col gap-1.5">
+            <h3 className="font-display text-lg font-bold text-[var(--ink)]">
+              Recruiters: just type the username
+            </h3>
+            <p className="text-sm leading-relaxed text-[var(--muted)]">
+              Know a candidate&apos;s GitHub handle? Enter it above and instantly see
+              their proof-of-work reel — no waiting for them to send a link, no
+              digging through repositories. It works for anyone with public repos.
+            </p>
+          </div>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           {USES.map((u) => (
             <div
