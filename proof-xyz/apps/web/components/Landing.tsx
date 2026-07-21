@@ -38,6 +38,13 @@ export function Landing() {
         }}
       />
 
+      {/* Themed accent glow behind the hero — recolours live with the theme. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-16 h-80 w-80 -translate-x-1/2 rounded-full blur-[90px] transition-colors duration-500"
+        style={{ background: "var(--accent)", opacity: 0.18 }}
+      />
+
       <div className="relative flex w-full max-w-lg flex-col items-center gap-9 text-center">
         <div className="flex flex-col items-center gap-5">
           <div className="animate-fade-up flex flex-col items-center gap-3">
@@ -104,12 +111,17 @@ export function Landing() {
               <button
                 key={t.id}
                 onClick={() => setThemeId(t.id)}
-                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+                className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
                   themeId === t.id
                     ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
                     : "border-[var(--ink)]/20 text-[var(--muted)] hover:border-[var(--ink)]/45"
                 }`}
               >
+                <span
+                  aria-hidden
+                  className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10"
+                  style={{ background: t.vars["--accent"] }}
+                />
                 {t.label}
               </button>
             ))}

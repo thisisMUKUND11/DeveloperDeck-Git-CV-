@@ -29,6 +29,7 @@ export const OG_THEME: Record<
   midnight: { bg: "#0c0e16", ink: "#eef1f8", muted: "#8b92a6", accent: "#7c6cff" },
   paper: { bg: "#fafaf8", ink: "#15171d", muted: "#6b7280", accent: "#3b5bff" },
   sunset: { bg: "#fff2ec", ink: "#2a1a16", muted: "#9a7d72", accent: "#fb5d3b" },
+  terminal: { bg: "#07100a", ink: "#d6f5df", muted: "#5f8f73", accent: "#28e07a" },
 };
 
 export function ogTheme(id: string) {

@@ -64,6 +64,24 @@ export const THEMES: Theme[] = [
       "rounded-3xl border border-[var(--accent)]/18 shadow-[0_26px_55px_-24px_rgba(251,93,59,0.5)] backdrop-blur-sm",
     fontClass: "font-display",
   },
+  {
+    id: "terminal",
+    label: "Terminal",
+    description: "Hacker-green monospace on near-black.",
+    vars: {
+      "--bg":
+        "radial-gradient(900px 520px at 50% -8%, #0e1a12 0%, #07100a 60%, #050b07 100%)",
+      "--surface": "rgba(10,20,14,0.92)",
+      "--ink": "#d6f5df",
+      "--muted": "#5f8f73",
+      "--accent": "#28e07a",
+      "--chip": "rgba(40,224,122,0.14)",
+      "--chip-ink": "#8ff0b6",
+    },
+    cardClass:
+      "rounded-2xl border border-[#28e07a]/25 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.9)] backdrop-blur-sm",
+    fontClass: "font-mono",
+  },
 ];
 
 export function getTheme(id: string): Theme {

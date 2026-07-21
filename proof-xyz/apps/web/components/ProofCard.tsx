@@ -51,8 +51,18 @@ export function ProofCard({
   const grid = variant === "grid";
   return (
     <div
-      className={`flex w-full flex-col bg-[var(--surface)] ${grid ? "" : "h-full"} ${theme.cardClass} ${theme.fontClass}`}
+      className={`flex w-full flex-col overflow-hidden bg-[var(--surface)] ${grid ? "" : "h-full"} ${theme.cardClass} ${theme.fontClass}`}
     >
+      {/* Thin themed accent strip — gives each card a splash of the theme colour. */}
+      <div
+        aria-hidden
+        className="h-1 w-full shrink-0"
+        style={{
+          background:
+            "linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent))",
+        }}
+      />
+
       {/* Fixed header — never scrolls, never overlapped. */}
       <div className="flex items-start justify-between gap-3 border-b border-[var(--ink)]/10 p-6 pb-4">
         <div className="flex min-w-0 flex-col gap-2">
