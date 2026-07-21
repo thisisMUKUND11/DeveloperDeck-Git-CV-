@@ -9,4 +9,5 @@ export const BRAND_FULL = `${BRAND} — ${BRAND_TAGLINE}`;
 
 // Author attribution, shown as a quiet footer credit across the app.
 export const AUTHOR = "Mukund.M.K";
-export const AUTHOR_URL = "https://thisismukund11.github.io/Mukund-MK_Portfolio/";
+export const AUTHOR_EMAIL = "mkmukund11@gmail.com";
+export const AUTHOR_URL = `mailto:${AUTHOR_EMAIL}`;
