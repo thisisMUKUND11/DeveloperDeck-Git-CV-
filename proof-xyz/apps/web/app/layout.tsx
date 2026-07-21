@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { BRAND_FULL } from "@/lib/brand";
+import { AUTHOR, AUTHOR_URL, BRAND_FULL } from "@/lib/brand";
 import "./globals.css";
 
 // Display: geometric, confident — headlines and card titles.
@@ -32,6 +32,8 @@ export const metadata: Metadata = {
   title: BRAND_FULL,
   description: DESCRIPTION,
   applicationName: BRAND_FULL,
+  authors: [{ name: AUTHOR, url: AUTHOR_URL }],
+  creator: AUTHOR,
   keywords: [
     "developer portfolio",
     "GitHub portfolio",

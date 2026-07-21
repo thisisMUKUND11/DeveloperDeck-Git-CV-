@@ -6,6 +6,7 @@ import type { Profile } from "@/lib/api";
 import { BRAND, BRAND_TAGLINE } from "@/lib/brand";
 import { getTheme } from "@/lib/themes";
 import { CardStack } from "./CardStack";
+import { Credit } from "./Credit";
 import { IdentityPanel } from "./IdentityPanel";
 import { IntroCard } from "./IntroCard";
 import { PrintSheet } from "./PrintSheet";
@@ -39,12 +40,13 @@ export function ProfileView({
   );
 
   const footer = (
-    <footer className="text-xs text-[var(--muted)]">
+    <footer className="flex flex-col gap-1 text-xs text-[var(--muted)]">
       <span>
         {readOnly ? "Shared via " : ""}
         <span className="font-semibold text-[var(--ink)]">{BRAND}</span> —{" "}
         {BRAND_TAGLINE}
       </span>
+      <Credit />
     </footer>
   );
 

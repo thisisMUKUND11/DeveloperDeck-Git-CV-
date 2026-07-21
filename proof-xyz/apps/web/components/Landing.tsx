@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { BRAND, BRAND_TAGLINE } from "@/lib/brand";
 import { THEMES, getTheme } from "@/lib/themes";
+import { Credit } from "./Credit";
 import { GenerateForm } from "./GenerateForm";
 
 // Kinetic rotating noun in the headline — modern, not salesy.
@@ -138,6 +139,8 @@ export function Landing() {
           <span>● AI-written</span>
           <span>● One link for your résumé</span>
         </div>
+
+        <Credit className="animate-fade-up" />
       </div>
     </main>
   );

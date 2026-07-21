@@ -6,3 +6,7 @@ export const BRAND_SLUG = "devreel";
 export const BRAND_TAGLINE = "proof-of-work from your GitHub";
 // Name + explanation, for titles and footers.
 export const BRAND_FULL = `${BRAND} — ${BRAND_TAGLINE}`;
+
+// Author attribution, shown as a quiet footer credit across the app.
+export const AUTHOR = "Mukund.M.K";
+export const AUTHOR_URL = "https://thisismukund11.github.io/Mukund-MK_Portfolio/";
