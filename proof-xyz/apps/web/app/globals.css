@@ -8,6 +8,11 @@ body {
   margin: 0;
 }
 
+/* Smooth in-page scrolling for the landing "how it works" / "try it now" links. */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-body), system-ui, sans-serif;
   /* `clip` (not `hidden`) prevents horizontal overflow WITHOUT turning body
@@ -78,6 +83,9 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {

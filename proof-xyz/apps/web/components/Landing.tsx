@@ -7,6 +7,7 @@ import { BRAND, BRAND_TAGLINE } from "@/lib/brand";
 import { THEMES, getTheme } from "@/lib/themes";
 import { Credit } from "./Credit";
 import { GenerateForm } from "./GenerateForm";
+import { UseCases } from "./UseCases";
 
 // Kinetic rotating noun in the headline — modern, not salesy.
 const WORDS = ["pitch", "portfolio", "case study", "flex"];
@@ -23,7 +24,8 @@ export function Landing() {
 
   return (
     <main
-      className="proof-root relative flex flex-col items-center justify-center px-6 py-16 transition-colors duration-500"
+      id="top"
+      className="proof-root relative flex scroll-mt-8 flex-col items-center px-6 py-16 transition-colors duration-500"
       style={theme.vars as React.CSSProperties}
     >
       {/* Soft dotted texture behind everything. */}
@@ -140,8 +142,18 @@ export function Landing() {
           <span>● One link for your résumé</span>
         </div>
 
+        <a
+          href="#how-it-works"
+          className="animate-fade-up text-xs font-semibold text-[var(--accent)] underline-offset-4 hover:underline"
+          style={{ animationDelay: "380ms" }}
+        >
+          ↓ See how it works & where to use it
+        </a>
+
         <Credit className="animate-fade-up" />
       </div>
+
+      <UseCases />
     </main>
   );
 }
