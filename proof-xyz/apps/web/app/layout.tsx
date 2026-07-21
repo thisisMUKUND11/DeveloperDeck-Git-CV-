@@ -20,10 +20,40 @@ const serif = Fraunces({
   variable: "--font-serif",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_PUBLIC_BASE_URL ||
+  "https://developer-deck-git-cv.vercel.app";
+
+const DESCRIPTION =
+  "Turn your GitHub into a swipeable, recruiter-ready proof-of-work portfolio in seconds.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: BRAND_FULL,
-  description:
-    "Turn your GitHub into a swipeable, recruiter-ready proof-of-work portfolio.",
+  description: DESCRIPTION,
+  applicationName: BRAND_FULL,
+  keywords: [
+    "developer portfolio",
+    "GitHub portfolio",
+    "proof of work",
+    "recruiter",
+    "resume",
+    "swipeable portfolio",
+    BRAND_FULL,
+  ],
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    siteName: BRAND_FULL,
+    url: SITE_URL,
+    title: BRAND_FULL,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: BRAND_FULL,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({
