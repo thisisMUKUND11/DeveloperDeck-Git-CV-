@@ -123,7 +123,7 @@ export function ProfileView({
 
       {/* ===== Desktop: sticky identity sidebar + project grid ===== */}
       <div className="hidden w-full max-w-6xl gap-12 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] print:hidden">
-        <aside className="animate-fade-up sticky top-10 flex h-fit flex-col gap-6">
+        <aside className="proof-scroll animate-fade-up sticky top-10 flex max-h-[calc(100dvh-4rem)] flex-col gap-6 overflow-y-auto pr-1">
           <IdentityPanel profile={profile} theme={theme} />
           {privateNote}
           {!readOnly && (
