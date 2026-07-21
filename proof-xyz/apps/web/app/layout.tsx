@@ -42,6 +42,7 @@ export const metadata: Metadata = {
     BRAND_FULL,
   ],
   robots: { index: true, follow: true },
+  verification: { google: "vrtfRuSYfI7hKCOebynlG1gLvv43wAJI1YQe4t6G6xk" },
   openGraph: {
     type: "website",
     siteName: BRAND_FULL,
