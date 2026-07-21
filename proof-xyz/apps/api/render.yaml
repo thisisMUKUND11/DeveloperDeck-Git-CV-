@@ -1,0 +1,28 @@
+# Render Blueprint for the DevReel FastAPI backend.
+# Deploy: Render → New → Blueprint → point at this repo. Render reads this file.
+#
+# Durable storage comes from an EXTERNAL free Postgres (Neon or Supabase), set
+# via the DATABASE_URL secret below — so shared résumé links survive restarts
+# and redeploys with no paid disk. The free instance is fine (it sleeps on idle,
+# but the data lives in Postgres, not on the container).
+services:
+  - type: web
+    name: devreel-api
+    runtime: docker
+    repo: # optional: set to your Git repo URL, or connect it in the dashboard
+    rootDir: proof-xyz/apps/api
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false   # set in the Render dashboard
+      - key: WEB_BASE_URL
+        sync: false   # your Vercel domain, e.g. https://devreel.vercel.app
+      - key: API_BASE_URL
+        sync: false   # this service's URL, e.g. https://devreel-api.onrender.com
+      - key: DATABASE_URL
+        sync: false   # Neon/Supabase Postgres DSN, e.g.
+                      # postgresql://user:pass@host/db?sslmode=require

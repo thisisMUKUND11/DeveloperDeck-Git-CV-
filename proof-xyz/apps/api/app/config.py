@@ -31,10 +31,22 @@ class Settings(BaseSettings):
     github_token: str | None = None
 
     # --- URLs ---
-    # Where the browser is sent back to after OAuth completes.
+    # Where the browser is sent back to after OAuth completes. Also the primary
+    # CORS origin. Accepts a comma-separated list to allow extra origins (e.g.
+    # Vercel preview deploys); the first entry is used for OAuth redirects.
     web_base_url: str = "http://localhost:3000"
     # Public base of this API, used to build the OAuth callback URL.
     api_base_url: str = "http://localhost:8000"
+
+    @property
+    def web_origins(self) -> list[str]:
+        """CORS allow-list, parsed from the comma-separated web_base_url."""
+        return [o.strip() for o in self.web_base_url.split(",") if o.strip()]
+
+    @property
+    def web_redirect_url(self) -> str:
+        """Primary web origin the browser is redirected to after OAuth."""
+        return self.web_origins[0] if self.web_origins else "http://localhost:3000"
 
     # --- Storage ---
     # Default to a local SQLite file for zero-setup runs. Point this at a

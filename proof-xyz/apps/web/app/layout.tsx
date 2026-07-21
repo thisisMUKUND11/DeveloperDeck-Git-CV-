@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { BRAND_FULL } from "@/lib/brand";
 import "./globals.css";
 
@@ -35,7 +36,10 @@ export default function RootLayout({
       lang="en"
       className={`${display.variable} ${body.variable} ${serif.variable}`}
     >
-      <body className="font-body antialiased">{children}</body>
+      <body className="font-body antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

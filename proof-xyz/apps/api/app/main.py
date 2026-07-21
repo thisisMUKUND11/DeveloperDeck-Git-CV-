@@ -30,7 +30,7 @@ app = FastAPI(title="proof.xyz API", version="0.1.0")
 settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.web_base_url],
+    allow_origins=settings.web_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -207,4 +207,4 @@ async def github_callback(code: str):
 
     # Ingest immediately so the user lands on a ready profile.
     await _generate(username, theme="neo-brutalist", token=access_token)
-    return RedirectResponse(f"{settings.web_base_url}/{username}")
+    return RedirectResponse(f"{settings.web_redirect_url}/{username}")

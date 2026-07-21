@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { track } from "@vercel/analytics";
+
 import { generateProfile } from "@/lib/api";
 import { formMemory } from "@/lib/uiState";
 
@@ -43,6 +45,8 @@ export function GenerateForm({ theme }: { theme: string }) {
     setError(null);
     try {
       await generateProfile(handle, theme);
+      // Count a real "used the app" action, distinct from a plain page visit.
+      track("deck_generated", { theme });
       router.push(`/${handle}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
