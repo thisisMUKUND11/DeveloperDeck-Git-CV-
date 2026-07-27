@@ -13,7 +13,8 @@ const nextConfig = {
     return [{ source: "/api/:path*", destination: `${backend}/api/:path*` }];
   },
   // Allow the dev server to be opened from these origins (LAN / tunnels).
-  allowedDevOrigins: ["192.168.1.5", "*.trycloudflare.com", "*.ngrok-free.app"],
+  // Dev-only — Next ignores this in production builds.
+  allowedDevOrigins: ["*.trycloudflare.com", "*.ngrok-free.app"],
 };
 
 export default nextConfig;

@@ -1,18 +1,21 @@
 import type { MetadataRoute } from "next";
 
-const BASE =
-  process.env.NEXT_PUBLIC_PUBLIC_BASE_URL ||
-  "https://developer-deck-git-cv.vercel.app";
+import { SITE_URL } from "@/lib/site";
 
-// Sitemap for search engines. Only the public landing page is listed —
+// Sitemap for search engines. Only the static public pages are listed —
 // generated profiles (/<username>) and share links (/s/<token>) are dynamic
 // and user-specific, so they're intentionally excluded.
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: BASE,
+      url: SITE_URL,
       changeFrequency: "weekly",
       priority: 1,
+    },
+    {
+      url: `${SITE_URL}/privacy`,
+      changeFrequency: "yearly",
+      priority: 0.3,
     },
   ];
 }

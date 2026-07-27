@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { MotionProvider } from "@/components/MotionProvider";
 import { AUTHOR, AUTHOR_URL, BRAND_FULL } from "@/lib/brand";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // Display: geometric, confident — headlines and card titles.
@@ -19,10 +21,6 @@ const serif = Fraunces({
   style: ["normal", "italic"],
   variable: "--font-serif",
 });
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_PUBLIC_BASE_URL ||
-  "https://developer-deck-git-cv.vercel.app";
 
 const DESCRIPTION =
   "Turn your GitHub into a swipeable, recruiter-ready proof-of-work portfolio in seconds.";
@@ -70,7 +68,7 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} ${serif.variable}`}
     >
       <body className="font-body antialiased">
-        {children}
+        <MotionProvider>{children}</MotionProvider>
         <Analytics />
       </body>
     </html>

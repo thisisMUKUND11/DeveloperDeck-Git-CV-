@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE =
-  process.env.NEXT_PUBLIC_PUBLIC_BASE_URL ||
-  "https://developer-deck-git-cv.vercel.app";
+import { SITE_URL } from "@/lib/site";
 
 // robots.txt — allow crawling the public site, but keep unique share links
 // (/s/<token>) out of search indexes since they're private résumé URLs.
@@ -13,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/s/"],
     },
-    sitemap: `${BASE}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

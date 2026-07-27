@@ -31,7 +31,7 @@ export interface Profile {
   public_count: number;
   private_count: number;
   private_access: boolean;
-  generated_with: "gemini" | "claude" | "rules";
+  generated_with: "gemini" | "rules";
   shared: boolean;
 }
 
