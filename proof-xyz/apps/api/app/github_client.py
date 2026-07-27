@@ -193,6 +193,17 @@ async def _enrich_public_repo(
     )
 
 
+async def verify_owner(username: str, token: str) -> bool:
+    """True when `token` belongs to `username` — proof of account ownership.
+
+    Used to gate destructive actions (profile deletion) so one visitor can't
+    break another person's shared résumé links.
+    """
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        login, _ = await _token_identity(client, _headers(token))
+    return bool(login and login.lower() == username.lower())
+
+
 async def ingest(username: str, token: str | None = None) -> IngestResult:
     """Pull a user's profile + repos. Public repos are enriched; private repos
     (own account only) are listed as locked."""

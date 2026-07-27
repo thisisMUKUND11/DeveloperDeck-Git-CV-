@@ -13,6 +13,8 @@ node_modules/
 .next/
 out/
 npm-debug.log*
+# Incremental TypeScript build cache — machine-local, churns on every build.
+*.tsbuildinfo
 
 # OS
 .DS_Store

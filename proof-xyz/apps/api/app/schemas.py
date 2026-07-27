@@ -113,7 +113,7 @@ class Profile(BaseModel):
     private_count: int = 0
     # False when private repos couldn't be read (so the UI can say so).
     private_access: bool = False
-    generated_with: str = "rules"  # "gemini" | "claude" | "rules"
+    generated_with: str = "rules"  # "gemini" | "rules"
     # Set on shared snapshots (read-only recruiter views).
     shared: bool = False
 
@@ -123,6 +123,11 @@ class GenerateRequest(BaseModel):
     theme: str = "midnight"
     # Optional token to lift rate limits / read private repos for this run.
     token: str | None = None
+
+
+class DeleteRequest(BaseModel):
+    # A GitHub token proving the caller owns the account being deleted.
+    token: str
 
 
 class ShareRequest(BaseModel):

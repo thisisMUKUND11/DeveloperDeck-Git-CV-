@@ -41,16 +41,37 @@ path.
 
    | Key | Value | Notes |
    |-----|-------|-------|
-   | `LLM_PROVIDER` | `gemini` | or `claude` / `rules` |
+   | `ENVIRONMENT` | `production` | makes bad config fail at boot instead of silently |
+   | `LLM_PROVIDER` | `gemini` | or `rules` for the offline fallback |
    | `GEMINI_API_KEY` | *your key* | free at https://aistudio.google.com/apikey |
+   | `GITHUB_TOKEN` | *a classic PAT* | **required** — see below |
    | `WEB_BASE_URL` | `https://<your-vercel-domain>` | your Vercel URL; comma-separate extras |
    | `API_BASE_URL` | `https://<your-render-service>.onrender.com` | this service's own URL |
    | `DATABASE_URL` | *Neon/Supabase connection string* | from Step 0 — makes share links durable |
 
+   > **`GITHUB_TOKEN` is not optional in production.** Ingesting one profile
+   > costs roughly 9 GitHub API calls per repository (languages, README, and
+   > seven dependency manifests). Unauthenticated callers get 60 requests an
+   > hour — not enough to finish a single profile. A token raises that to 5000.
+   > A classic PAT with **no scopes** is enough for public repos; add the `repo`
+   > scope only if you want private-repo ingestion. With `ENVIRONMENT=production`
+   > the app refuses to start without one, and likewise refuses a non-Postgres
+   > `DATABASE_URL`.
+
+   Optional tuning (defaults in [apps/api/.env.example](apps/api/.env.example)):
+   `MAX_REPOS`, `PROFILE_CACHE_HOURS`, `GENERATE_RATE_LIMIT`,
+   `GENERATE_GLOBAL_HOURLY_CAP`.
+
    OAuth is optional — skip `GITHUB_CLIENT_ID/SECRET` unless you want one-click
-   GitHub login. A `GITHUB_TOKEN` is recommended to raise GitHub's 60/hr limit.
+   GitHub login and private-repo ingestion.
 5. Deploy. Verify: open `https://<your-render-service>.onrender.com/api/health`
    — it should report the active `generative_layer`.
+
+> **Free-tier cold starts.** Render's free plan spins a service down after
+> inactivity, so the first request in a while can take ~50s while the container
+> wakes. The generate flow shows a progress animation, but that's a long first
+> impression. Either upgrade to a paid instance, or ping `/api/health` on a
+> schedule (e.g. a free cron-job.org job every 10 minutes) to keep it warm.
 
 > **Tip:** you can skip the manual setup above and deploy via the included
 > [apps/api/render.yaml](apps/api/render.yaml) Blueprint (Render → New →
@@ -70,10 +91,18 @@ path.
    | Key | Value | Notes |
    |-----|-------|-------|
    | `BACKEND_INTERNAL_URL` | `https://<your-render-service>.onrender.com` | where Vercel proxies `/api/*` |
-   | `NEXT_PUBLIC_PUBLIC_BASE_URL` | `https://<your-vercel-domain>` | used to build shareable links |
+   | `NEXT_PUBLIC_PUBLIC_BASE_URL` | `https://<your-domain>` | canonical origin — see below |
 
    Leave `NEXT_PUBLIC_API_BASE_URL` **empty** so the browser uses same-origin
    `/api/*` (proxied via Vercel).
+
+   > **Set `NEXT_PUBLIC_PUBLIC_BASE_URL` to your real domain** if you have one.
+   > It drives `metadataBase`, every Open Graph/Twitter card URL, `robots.txt`
+   > and the sitemap ([apps/web/lib/site.ts](apps/web/lib/site.ts)). If it's
+   > unset the code falls back to Vercel's `VERCEL_PROJECT_PRODUCTION_URL`, so
+   > you get the right host automatically on a `*.vercel.app` deploy — but on a
+   > custom domain, forgetting this means all your share previews and indexed
+   > URLs point at the vercel.app host instead.
 4. Deploy. Open your Vercel URL, enter a GitHub username, pick a theme.
 
 ---

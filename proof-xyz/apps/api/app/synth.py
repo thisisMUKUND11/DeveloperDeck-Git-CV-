@@ -5,9 +5,9 @@ per repo. Public repos get a model-authored what / why / how breakdown; private
 repos are surfaced as locked cards (no detail). Languages, visibility and URL
 are always taken from the raw GitHub facts, never invented.
 
-Primary path uses Google Gemini (free tier) via structured output. An optional
-Claude path is also supported. If no key is configured, a deterministic
-rules-based synthesizer keeps the slice working end-to-end.
+Primary path uses Google Gemini (free tier) via structured output. If no key is
+configured — or the call fails or times out — a deterministic rules-based
+synthesizer keeps the flow working end-to-end.
 """
 
 from __future__ import annotations
@@ -87,11 +87,7 @@ def _build_prompt(data: IngestResult, public_repos: list[Repo]) -> str:
 def resolve_provider(settings) -> str:
     if settings.llm_provider != "auto":
         return settings.llm_provider
-    if settings.gemini_api_key:
-        return "gemini"
-    if settings.anthropic_api_key:
-        return "claude"
-    return "rules"
+    return "gemini" if settings.gemini_api_key else "rules"
 
 
 def synthesize(data: IngestResult) -> tuple[str, str, list[Card], str]:
@@ -116,12 +112,6 @@ def synthesize(data: IngestResult) -> tuple[str, str, list[Card], str]:
                 used = "gemini"
             except Exception as exc:  # pragma: no cover
                 logger.warning("Gemini synthesis failed (%s); using rules.", exc)
-        elif provider == "claude" and settings.anthropic_api_key:
-            try:
-                deck = _claude_deck(data, public, settings)
-                used = "claude"
-            except Exception as exc:  # pragma: no cover
-                logger.warning("Claude synthesis failed (%s); using rules.", exc)
 
         if deck is None:
             deck = _rules_deck(data, public)
@@ -182,7 +172,14 @@ def _gemini_deck(data: IngestResult, public: list[Repo], settings) -> GeneratedD
     from google import genai
     from google.genai import types
 
-    client = genai.Client(api_key=settings.gemini_api_key)
+    # HttpOptions.timeout is in milliseconds. Without it a hung provider would
+    # hold the request open indefinitely; on expiry we fall back to rules.
+    client = genai.Client(
+        api_key=settings.gemini_api_key,
+        http_options=types.HttpOptions(
+            timeout=int(settings.gemini_timeout_seconds * 1000)
+        ),
+    )
     response = client.models.generate_content(
         model=settings.gemini_model,
         contents=_build_prompt(data, public),
@@ -202,23 +199,6 @@ def _gemini_deck(data: IngestResult, public: list[Repo], settings) -> GeneratedD
         deck = GeneratedDeck.model_validate_json(response.text)
     if not isinstance(deck, GeneratedDeck):
         deck = GeneratedDeck.model_validate(deck)
-    return deck
-
-
-def _claude_deck(data: IngestResult, public: list[Repo], settings) -> GeneratedDeck:
-    import anthropic
-
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-    response = client.messages.parse(
-        model=settings.anthropic_model,
-        max_tokens=4096,
-        system=SYSTEM,
-        messages=[{"role": "user", "content": _build_prompt(data, public)}],
-        output_format=GeneratedDeck,
-    )
-    deck = response.parsed_output
-    if deck is None:
-        raise ValueError("model returned no parseable output")
     return deck
 
 

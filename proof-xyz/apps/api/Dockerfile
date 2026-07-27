@@ -21,5 +21,7 @@ EXPOSE 8000
 
 # Production server: no --reload. Single async worker — the app is IO-bound
 # (awaits GitHub + the LLM) so async handles concurrency, and one worker keeps
-# the SQLite file free of cross-process write locks. Shell form so $PORT expands.
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
+# the rate-limiter counters in one process. Shell form so $PORT expands.
+# --proxy-headers: the platform terminates TLS and forwards X-Forwarded-*, so
+# without it every request would look like it came from the load balancer.
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*'

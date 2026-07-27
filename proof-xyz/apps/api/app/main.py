@@ -1,29 +1,34 @@
 """proof.xyz API — ingest GitHub, synthesize a swipeable proof-of-work deck.
 
 Endpoints:
-  GET  /api/health
-  POST /api/generate              {username, theme?, token?} -> Profile
-  GET  /api/profile/{username}    -> Profile
-  GET  /api/auth/github/login     -> 302 to GitHub OAuth
-  GET  /api/auth/github/callback  -> exchanges code, ingests, 302 to web app
+  GET    /api/health
+  POST   /api/generate              {username, theme?, token?} -> Profile
+  GET    /api/profile/{username}    -> Profile
+  DELETE /api/profile/{username}    {token} -> removes profile + its shares
+  POST   /api/share                 -> {token}
+  GET    /api/share/{token}         -> Profile
+  GET    /api/auth/github/login     -> 302 to GitHub OAuth
+  GET    /api/auth/github/callback  -> exchanges code, ingests, 302 to web app
 """
 
 from __future__ import annotations
 
 import logging
+import re
+import secrets
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-import secrets
-
 from . import github_client, store, synth
 from .config import get_settings
-from .schemas import GenerateRequest, Profile, ShareRequest
+from .limits import SlidingWindowLimiter, client_key
+from .schemas import DeleteRequest, GenerateRequest, Profile, ShareRequest
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("proof.api")
 
 app = FastAPI(title="proof.xyz API", version="0.1.0")
 
@@ -36,12 +41,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# GitHub's own rule: alphanumerics and single inner hyphens, max 39 chars.
+# Validating up front keeps junk out of the upstream URL and out of the cache.
+_HANDLE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}")
+
+# Per-caller bound, and a global backstop for when X-Forwarded-For is spoofed
+# or every request genuinely shares one proxy address.
+_per_client = SlidingWindowLimiter(settings.generate_rate_limit)
+_global = SlidingWindowLimiter(settings.generate_global_hourly_cap)
+
+# Name of the cookie holding the OAuth CSRF nonce.
+_STATE_COOKIE = "devreel_oauth_state"
+
+
+def _clean_handle(raw: str) -> str:
+    handle = raw.strip().lstrip("@")
+    if not _HANDLE_RE.fullmatch(handle):
+        raise HTTPException(status_code=400, detail="That isn't a valid GitHub username.")
+    return handle
+
 
 async def _generate(username: str, theme: str, token: str | None) -> Profile:
     try:
         data = await github_client.ingest(username, token=token)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504, detail="GitHub took too long to respond — try again."
+        )
     except httpx.HTTPStatusError as exc:
         # Most commonly an unauthenticated rate-limit (403) from GitHub.
         detail = "GitHub API error"
@@ -87,22 +115,79 @@ async def health():
 
 
 @app.post("/api/generate", response_model=Profile)
-async def generate(req: GenerateRequest):
-    return await _generate(req.username, req.theme, req.token)
+async def generate(req: GenerateRequest, request: Request):
+    handle = _clean_handle(req.username)
+
+    # 1. Serve a recent profile rather than re-ingesting. This is the main cost
+    #    control: repeat traffic to the same handle (the common case for a
+    #    résumé link) never touches GitHub or the LLM. A caller-supplied token
+    #    is skipped, since it may unlock private repos the cache doesn't have.
+    if not req.token:
+        age = store.get_age_hours(handle)
+        if age is not None and age < settings.profile_cache_hours:
+            cached = store.get(handle)
+            if cached:
+                if req.theme and req.theme != cached.theme:
+                    # Honour the newly picked vibe without resetting cache age.
+                    cached.theme = req.theme
+                    store.save(cached, touch=False)
+                return cached
+
+    # 2. A cold generate costs real quota, so bound it.
+    allowed, retry = _global.try_acquire("all")
+    if not allowed:
+        raise HTTPException(
+            status_code=503,
+            detail="We're at capacity right now — please try again shortly.",
+            headers={"Retry-After": str(retry)},
+        )
+    caller = client_key(request.headers, request.client.host if request.client else None)
+    allowed, retry = _per_client.try_acquire(caller)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"You've generated a lot of reels in the last hour. "
+                f"Try again in about {max(1, retry // 60)} minute(s)."
+            ),
+            headers={"Retry-After": str(retry)},
+        )
+
+    return await _generate(handle, req.theme, req.token)
 
 
 @app.get("/api/profile/{username}", response_model=Profile)
 async def get_profile(username: str):
-    profile = store.get(username)
+    profile = store.get(_clean_handle(username))
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found — generate it first.")
     return profile
 
 
+@app.delete("/api/profile/{username}")
+async def delete_profile(username: str, req: DeleteRequest):
+    """Remove a profile and every share snapshot made from it.
+
+    Requires a GitHub token belonging to that account. Without proof of
+    ownership anyone could break someone else's shared résumé links.
+    """
+    handle = _clean_handle(username)
+    if not await github_client.verify_owner(handle, req.token):
+        raise HTTPException(
+            status_code=403,
+            detail="That GitHub token doesn't belong to this account.",
+        )
+    deleted = store.delete(handle)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="No stored profile for that account.")
+    logger.info("Deleted profile and shares for %s at owner request.", handle)
+    return {"deleted": True, "username": handle}
+
+
 @app.post("/api/share")
 async def create_share(req: ShareRequest):
     """Create a unique, read-only share link showing only the chosen projects."""
-    profile = store.get(req.username)
+    profile = store.get(_clean_handle(req.username))
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found — generate it first.")
 
@@ -143,7 +228,7 @@ async def get_share(token: str):
     # Read-only: does NOT count a view (page render + OG image both hit this).
     snapshot = store.get_share(token)
     if not snapshot:
-        raise HTTPException(status_code=404, detail="Share link not found or expired.")
+        raise HTTPException(status_code=404, detail="Share link not found.")
     return snapshot
 
 
@@ -169,19 +254,42 @@ async def github_login():
     if not settings.github_client_id:
         raise HTTPException(status_code=501, detail="GitHub OAuth not configured.")
     redirect_uri = f"{settings.api_base_url}/api/auth/github/callback"
+    # CSRF nonce: echoed by GitHub and checked on the way back, so a third
+    # party can't feed us an authorization code they obtained themselves.
+    state = secrets.token_urlsafe(24)
     url = (
         "https://github.com/login/oauth/authorize"
         f"?client_id={settings.github_client_id}"
         f"&redirect_uri={redirect_uri}"
+        f"&state={state}"
         "&scope=read:user,public_repo"
     )
-    return RedirectResponse(url)
+    response = RedirectResponse(url)
+    # Lax still travels on the top-level GET redirect back from github.com.
+    response.set_cookie(
+        _STATE_COOKIE,
+        state,
+        max_age=600,
+        httponly=True,
+        secure=settings.is_production,
+        samesite="lax",
+        path="/api/auth/github",
+    )
+    return response
 
 
 @app.get("/api/auth/github/callback")
-async def github_callback(code: str):
+async def github_callback(request: Request, code: str, state: str = ""):
     if not (settings.github_client_id and settings.github_client_secret):
         raise HTTPException(status_code=501, detail="GitHub OAuth not configured.")
+
+    expected = request.cookies.get(_STATE_COOKIE)
+    # compare_digest keeps the check constant-time; the empty-value guard stops
+    # a missing cookie from matching a missing state parameter.
+    if not expected or not state or not secrets.compare_digest(state, expected):
+        raise HTTPException(
+            status_code=400, detail="Login session expired or invalid — please try again."
+        )
 
     async with httpx.AsyncClient(timeout=20.0) as client:
         token_resp = await client.post(
@@ -207,4 +315,6 @@ async def github_callback(code: str):
 
     # Ingest immediately so the user lands on a ready profile.
     await _generate(username, theme="midnight", token=access_token)
-    return RedirectResponse(f"{settings.web_redirect_url}/{username}")
+    response = RedirectResponse(f"{settings.web_redirect_url}/{username}")
+    response.delete_cookie(_STATE_COOKIE, path="/api/auth/github")
+    return response
