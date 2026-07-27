@@ -52,7 +52,7 @@ export function ProfileView({
 
   // Top navigation: a visible way back home, plus a restyled "make your own" CTA.
   const topNav = (
-    <nav className="mb-7 flex w-full max-w-6xl items-center justify-between print:hidden">
+    <nav className="mb-7 flex w-full max-w-6xl items-center justify-between xl:max-w-7xl print:hidden">
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 font-display text-sm font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
@@ -95,7 +95,9 @@ export function ProfileView({
       {topNav}
 
       {/* ===== Mobile / tablet: centered column with the swipe deck ===== */}
-      <div className="flex w-full max-w-md flex-col items-center gap-6 lg:hidden print:hidden">
+      {/* This column runs all the way up to lg, so it has to look deliberate on
+          a tablet too, not just a phone — hence the wider cap at md. */}
+      <div className="flex w-full max-w-md flex-col items-center gap-6 md:max-w-xl lg:hidden print:hidden">
         <header className="animate-fade-up flex flex-col items-center gap-2 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
             @{profile.username}
@@ -123,8 +125,12 @@ export function ProfileView({
         <div className="text-center">{footer}</div>
       </div>
 
-      {/* ===== Desktop: sticky identity sidebar + project grid ===== */}
-      <div className="hidden w-full max-w-6xl gap-12 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] print:hidden">
+      {/* ===== Desktop: sticky identity sidebar + project grid =====
+          The sidebar holds the share panel (repo picker + link + QR), so it
+          needs enough width that repo names and summaries aren't all truncated.
+          Widens again at xl, and the container grows at the 3-column
+          breakpoint so the extra sidebar width isn't taken from the cards. */}
+      <div className="hidden w-full max-w-6xl gap-10 lg:grid lg:grid-cols-[380px_minmax(0,1fr)] xl:gap-12 xl:grid-cols-[420px_minmax(0,1fr)] xl:max-w-7xl print:hidden">
         <aside className="proof-scroll animate-fade-up sticky top-10 flex max-h-[calc(100dvh-4rem)] flex-col gap-6 overflow-y-auto pr-1">
           <IdentityPanel profile={profile} theme={theme} />
           {privateNote}

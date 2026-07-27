@@ -27,7 +27,10 @@ function Section({ label, points }: { label: string; points: string[] }) {
         {points.map((point, i) => (
           <li key={i} className="flex gap-2.5">
             <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-            <span className="text-[14.5px] leading-relaxed text-[var(--ink)] [text-align:justify]">
+            {/* Left-aligned, not justified: the card body is ~290px wide, far
+                too narrow for justification — it opens rivers and stretched
+                word gaps rather than a clean edge. */}
+            <span className="text-[14.5px] leading-relaxed text-[var(--ink)]">
               {point}
             </span>
           </li>

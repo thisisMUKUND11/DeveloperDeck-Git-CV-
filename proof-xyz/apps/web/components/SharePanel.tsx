@@ -120,7 +120,7 @@ export function SharePanel({
                 </button>
               </div>
 
-              <div className="proof-scroll flex max-h-[min(60vh,30rem)] flex-col gap-1.5 overflow-y-auto pr-1">
+              <div className="proof-scroll flex max-h-[min(60dvh,30rem)] flex-col gap-1.5 overflow-y-auto pr-1">
                 {shareable.map((c) => {
                   const on = selected.has(c.repo);
                   return (
@@ -206,8 +206,10 @@ export function SharePanel({
                       animate={{ opacity: 1 }}
                       className="flex flex-col items-center gap-2 rounded-xl bg-white p-3"
                     >
+                      {/* Rendered at 192px against a 240px source, so it stays
+                          sharp — bigger scans more reliably off a printed CV. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={qr} alt="QR code for your link" className="h-40 w-40" />
+                      <img src={qr} alt="QR code for your link" className="h-48 w-48" />
                       <a
                         href={qr}
                         download={`${username}-${BRAND_SLUG}-qr.png`}

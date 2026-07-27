@@ -13,6 +13,16 @@ import { useEffect, useState, type ReactNode } from "react";
 const SWIPE_THRESHOLD = 55;
 const FLING_VELOCITY = 300;
 
+// The deck, its progress bar and its buttons must share one width. It grows on
+// tablets: the desktop grid only takes over at lg, so without this an iPad in
+// portrait (768px) showed a 340px card marooned in empty space.
+const DECK_WIDTH = "w-full max-w-[340px] sm:max-w-[390px] md:max-w-[460px]";
+
+// Above this many slides the progress bar stops being a row of tappable
+// segments. At 16 slides in a 340px bar each segment is ~15px — well under the
+// ~44px touch target guideline, so tapping an exact one isn't realistic.
+const MAX_TAPPABLE_SEGMENTS = 10;
+
 /** The front, draggable slide. Its motion value drives the live tilt — kept
  *  separate from the enter/exit animation so the two never fight. Vertical
  *  scrolling inside the card is preserved via dragDirectionLock. */
@@ -105,17 +115,26 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
     setIndex(target);
   };
 
+  // Depends on what `go` actually reads, so the listener is re-bound only when
+  // the position changes rather than on every render.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Don't steal the arrow keys from a focused text field.
+      const el = e.target as HTMLElement | null;
+      if (el?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName ?? "")) {
+        return;
+      }
       if (e.key === "ArrowRight") go(1);
       if (e.key === "ArrowLeft") go(-1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, slides.length]);
 
   const atEnd = index >= slides.length - 1;
   const atStart = index <= 0;
+  const segmented = slides.length <= MAX_TAPPABLE_SEGMENTS;
 
   const jumpTo = (i: number) => {
     if (i === index) return;
@@ -125,33 +144,60 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
 
   return (
     <div className="flex w-full flex-col items-center gap-5">
-      {/* Story-style segmented progress bar: fills up to the current slide and
-          each segment is tappable to jump. Reads as a "reel" and doubles as the
-          position indicator (replaces the old dots). */}
-      <div className="flex w-full max-w-[340px] gap-1.5">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => jumpTo(i)}
-            aria-label={`Go to slide ${i + 1}`}
-            className="group flex-1 py-1.5"
-          >
-            <span className="block h-1 overflow-hidden rounded-full bg-[var(--ink)]/12">
-              <motion.span
-                className="block h-full rounded-full bg-[var(--accent)]"
-                initial={false}
-                animate={{ width: i <= index ? "100%" : "0%" }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-              />
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Story-style progress bar. With few slides each segment is tappable to
+          jump; past MAX_TAPPABLE_SEGMENTS they'd be too narrow to hit, so it
+          becomes one continuous track and navigation falls to swipe/buttons. */}
+      {segmented ? (
+        <div className={`flex ${DECK_WIDTH} gap-1.5`}>
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => jumpTo(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className="group flex-1 py-1.5"
+            >
+              <span className="block h-1 overflow-hidden rounded-full bg-[var(--ink)]/12">
+                <motion.span
+                  className="block h-full rounded-full bg-[var(--accent)]"
+                  initial={false}
+                  animate={{ width: i <= index ? "100%" : "0%" }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                />
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div
+          className={`${DECK_WIDTH} py-1.5`}
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={slides.length}
+          aria-valuenow={index + 1}
+          aria-label={`Slide ${index + 1} of ${slides.length}`}
+        >
+          <span className="block h-1 overflow-hidden rounded-full bg-[var(--ink)]/12">
+            <motion.span
+              className="block h-full rounded-full bg-[var(--accent)]"
+              initial={false}
+              animate={{ width: `${((index + 1) / slides.length) * 100}%` }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+            />
+          </span>
+        </div>
+      )}
 
       <div className="flex w-full items-center justify-center gap-2 sm:gap-3">
         <ArrowButton dir={-1} disabled={atStart} onClick={() => go(-1)} />
 
-        <div className="relative h-[66vh] max-h-[520px] min-h-[400px] w-full max-w-[340px]">
+        {/* dvh, not vh: on mobile browsers vh is the *largest* viewport height
+            and ignores the address bar, so the card overflowed the visible area
+            until the toolbar collapsed. Matches the 100dvh used on .proof-root.
+            The min-height relaxes on short viewports (landscape phones) where a
+            400px floor pushed the Back/Next buttons off screen. */}
+        <div
+          className={`relative h-[66dvh] max-h-[520px] min-h-[340px] md:max-h-[620px] [@media(min-height:700px)]:min-h-[400px] ${DECK_WIDTH}`}
+        >
           {/* Two peeked cards behind the top one give the stack real depth. */}
           {slides[index + 2] && (
             <div className="pointer-events-none absolute inset-0 translate-y-6 scale-[0.9] opacity-25">
@@ -186,7 +232,7 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
 
       {/* Mobile: explicit Back / Next buttons so navigation never depends on
           the swipe gesture (the side arrows are hidden below the sm breakpoint). */}
-      <div className="flex w-full max-w-[340px] items-center gap-3 sm:hidden">
+      <div className={`flex items-center gap-3 sm:hidden ${DECK_WIDTH}`}>
         <button
           onClick={() => go(-1)}
           disabled={atStart}
