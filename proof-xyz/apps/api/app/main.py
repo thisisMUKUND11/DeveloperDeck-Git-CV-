@@ -13,6 +13,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import secrets
@@ -77,7 +78,12 @@ async def _generate(username: str, theme: str, token: str | None) -> Profile:
             detail = "GitHub rate limit hit — add a token to raise the limit."
         raise HTTPException(status_code=502, detail=detail)
 
-    headline, pitch, cards, generated_with = synth.synthesize(data)
+    # synthesize() makes a blocking Gemini call (up to GEMINI_TIMEOUT_SECONDS).
+    # Left on the event loop it would stall every other in-flight request for
+    # the whole duration, so it runs on a worker thread.
+    headline, pitch, cards, generated_with = await asyncio.to_thread(
+        synth.synthesize, data
+    )
 
     # Aggregate stats for the TL;DR intro card (from raw GitHub facts).
     public_repos = [r for r in data.repos if not r.private]
@@ -101,7 +107,7 @@ async def _generate(username: str, theme: str, token: str | None) -> Profile:
         private_access=data.private_access,
         generated_with=generated_with,
     )
-    store.save(profile)
+    await asyncio.to_thread(store.save, profile)
     return profile
 
 
@@ -123,14 +129,14 @@ async def generate(req: GenerateRequest, request: Request):
     #    résumé link) never touches GitHub or the LLM. A caller-supplied token
     #    is skipped, since it may unlock private repos the cache doesn't have.
     if not req.token:
-        age = store.get_age_hours(handle)
+        age = await asyncio.to_thread(store.get_age_hours, handle)
         if age is not None and age < settings.profile_cache_hours:
-            cached = store.get(handle)
+            cached = await asyncio.to_thread(store.get, handle)
             if cached:
                 if req.theme and req.theme != cached.theme:
                     # Honour the newly picked vibe without resetting cache age.
                     cached.theme = req.theme
-                    store.save(cached, touch=False)
+                    await asyncio.to_thread(store.save, cached, touch=False)
                 return cached
 
     # 2. A cold generate costs real quota, so bound it.
@@ -158,7 +164,7 @@ async def generate(req: GenerateRequest, request: Request):
 
 @app.get("/api/profile/{username}", response_model=Profile)
 async def get_profile(username: str):
-    profile = store.get(_clean_handle(username))
+    profile = await asyncio.to_thread(store.get, _clean_handle(username))
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found — generate it first.")
     return profile
@@ -177,7 +183,7 @@ async def delete_profile(username: str, req: DeleteRequest):
             status_code=403,
             detail="That GitHub token doesn't belong to this account.",
         )
-    deleted = store.delete(handle)
+    deleted = await asyncio.to_thread(store.delete, handle)
     if not deleted:
         raise HTTPException(status_code=404, detail="No stored profile for that account.")
     logger.info("Deleted profile and shares for %s at owner request.", handle)
@@ -187,7 +193,7 @@ async def delete_profile(username: str, req: DeleteRequest):
 @app.post("/api/share")
 async def create_share(req: ShareRequest):
     """Create a unique, read-only share link showing only the chosen projects."""
-    profile = store.get(_clean_handle(req.username))
+    profile = await asyncio.to_thread(store.get, _clean_handle(req.username))
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found — generate it first.")
 
@@ -219,14 +225,14 @@ async def create_share(req: ShareRequest):
     )
     # A fresh token every time → each shared link is unique.
     token = secrets.token_urlsafe(9)
-    store.save_share(token, snapshot)
+    await asyncio.to_thread(store.save_share, token, snapshot)
     return {"token": token}
 
 
 @app.get("/api/share/{token}", response_model=Profile)
 async def get_share(token: str):
     # Read-only: does NOT count a view (page render + OG image both hit this).
-    snapshot = store.get_share(token)
+    snapshot = await asyncio.to_thread(store.get_share, token)
     if not snapshot:
         raise HTTPException(status_code=404, detail="Share link not found.")
     return snapshot
@@ -235,7 +241,7 @@ async def get_share(token: str):
 @app.post("/api/share/{token}/view")
 async def record_view(token: str):
     """Count one real browser open (fired client-side, not on prefetch/OG)."""
-    views = store.bump_share_view(token)
+    views = await asyncio.to_thread(store.bump_share_view, token)
     if views is None:
         raise HTTPException(status_code=404, detail="Share link not found.")
     return {"views": views}
@@ -243,7 +249,7 @@ async def record_view(token: str):
 
 @app.get("/api/share/{token}/stats")
 async def share_stats(token: str):
-    views = store.share_views(token)
+    views = await asyncio.to_thread(store.share_views, token)
     if views is None:
         raise HTTPException(status_code=404, detail="Share link not found.")
     return {"views": views}

@@ -6,10 +6,17 @@ import { useMemo, useState } from "react";
 
 import { createShare, getShareStats, type Card } from "@/lib/api";
 import { BRAND_SLUG } from "@/lib/brand";
+import { normalizeOrigin } from "@/lib/site";
 
+/** Client-side origin for the share link.
+ *
+ * Deliberately not lib/site.ts's SITE_URL: that resolves at module scope and
+ * falls back to VERCEL_PROJECT_PRODUCTION_URL / localhost, neither of which is
+ * available or correct in the browser. Here the live origin is the right
+ * fallback — only the normalisation is shared. */
 function shareBase() {
   const env = process.env.NEXT_PUBLIC_PUBLIC_BASE_URL;
-  if (env) return env;
+  if (env?.trim()) return normalizeOrigin(env);
   return typeof window !== "undefined" ? window.location.origin : "";
 }
 

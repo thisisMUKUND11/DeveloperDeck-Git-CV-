@@ -100,12 +100,14 @@ def _ensure_init() -> None:
         if _using_postgres():
             from psycopg_pool import ConnectionPool
 
-            # Small ceiling: free-tier Postgres plans cap total connections and
-            # this service runs a single web instance.
+            # Sized by DB_POOL_MAX_SIZE. Every endpoint runs its store call on
+            # a worker thread, so the pool needs enough connections to match
+            # in-flight requests — but must stay under the provider's per-database
+            # connection cap.
             _pool = ConnectionPool(
                 get_settings().database_url,
                 min_size=1,
-                max_size=5,
+                max_size=get_settings().db_pool_max_size,
                 timeout=10.0,
                 open=True,
             )

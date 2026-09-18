@@ -14,12 +14,19 @@
  * Client components should use `publicBaseUrl()` in SharePanel instead, which
  * falls back to window.location.origin.
  */
-function resolve(): string {
-  const explicit = process.env.NEXT_PUBLIC_PUBLIC_BASE_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
+/** Drop a trailing slash so callers can safely append "/s/<token>". */
+export function normalizeOrigin(url: string): string {
+  return url.trim().replace(/\/+$/, "");
+}
 
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  if (vercel) return `https://${vercel.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+function resolve(): string {
+  const explicit = process.env.NEXT_PUBLIC_PUBLIC_BASE_URL;
+  if (explicit?.trim()) return normalizeOrigin(explicit);
+
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercel?.trim()) {
+    return `https://${normalizeOrigin(vercel).replace(/^https?:\/\//, "")}`;
+  }
 
   return "http://localhost:3000";
 }

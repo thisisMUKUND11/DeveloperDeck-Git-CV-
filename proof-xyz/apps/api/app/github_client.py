@@ -27,8 +27,8 @@ from .schemas import IngestResult, Repo
 GITHUB_API = "https://api.github.com"
 
 # Bound concurrent GitHub calls so large accounts don't fan out to hundreds of
-# in-flight requests (keeps us polite and within the time budget).
-_CONCURRENCY = 8
+# in-flight requests (keeps us polite and within the time budget). Tunable via
+# GITHUB_CONCURRENCY.
 
 # Dependency manifests worth fetching per repo, in priority order.
 MANIFEST_PATHS = [
@@ -236,7 +236,7 @@ async def ingest(username: str, token: str | None = None) -> IngestResult:
         )
         candidates = candidates[: settings.max_repos]
 
-        sem = asyncio.Semaphore(_CONCURRENCY)
+        sem = asyncio.Semaphore(settings.github_concurrency)
         enriched: list[Repo] = []
         public_raw = [r for r in candidates if not r.get("private")]
         private_raw = [r for r in candidates if r.get("private")]

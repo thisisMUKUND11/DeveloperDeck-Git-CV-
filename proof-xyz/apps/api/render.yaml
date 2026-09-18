@@ -51,6 +51,14 @@ services:
       - key: PROFILE_CACHE_HOURS
         value: "24"
       - key: GENERATE_RATE_LIMIT
-        value: "10"
+        value: "30"
       - key: GENERATE_GLOBAL_HOURLY_CAP
-        value: "250"
+        value: "1000"
+      # Concurrency. The API is I/O-bound and every blocking call (DB, LLM) runs
+      # on a worker thread, so one async worker serves many simultaneous users.
+      # Keep it at ONE worker: the rate limiter holds its counters in process
+      # memory, so N workers would multiply the effective limits by N.
+      - key: GITHUB_CONCURRENCY
+        value: "16"
+      - key: DB_POOL_MAX_SIZE
+        value: "16"

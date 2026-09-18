@@ -63,10 +63,23 @@ class Settings(BaseSettings):
     # Serve a stored profile instead of regenerating when it's younger than this.
     profile_cache_hours: int = 24
     # Sliding-window cap on cache-missing generates per client per hour.
-    generate_rate_limit: int = 10
+    generate_rate_limit: int = 30
     # Belt-and-braces cap on total cold generates per hour across all clients,
     # so a distributed hammering can't run up an unbounded LLM bill.
-    generate_global_hourly_cap: int = 250
+    # Raise only alongside the GitHub token budget: each cold generate costs
+    # roughly MAX_REPOS * 9 calls, so 1000 * 15 * 9 far exceeds one token's
+    # 5000/hr. The cache is what makes a high ceiling survivable — only misses
+    # count against it.
+    generate_global_hourly_cap: int = 1000
+
+    # --- Concurrency ---
+    # In-flight GitHub requests per ingest. Higher finishes a single profile
+    # sooner but bursts harder against the hourly budget; 16 keeps a 15-repo
+    # profile to ~9 sequential round trips.
+    github_concurrency: int = 16
+    # Postgres pool ceiling. Must stay under the provider's per-database
+    # connection cap (Neon/Supabase free tiers are the binding constraint).
+    db_pool_max_size: int = 16
 
     # --- Environment ---
     # "production" turns silent, expensive-to-discover misconfigurations into

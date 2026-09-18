@@ -1,18 +1,10 @@
 import type { Profile } from "@/lib/api";
+import { profileStats } from "@/lib/profileStats";
 import type { Theme } from "@/lib/themes";
-
-function compact(n: number): string {
-  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "")}k` : `${n}`;
-}
 
 /** The TL;DR intro slide — the 6-second pitch shown first. */
 export function IntroCard({ profile, theme }: { profile: Profile; theme: Theme }) {
-  const stats: { value: string; label: string }[] = [
-    { value: `${profile.public_count}`, label: profile.public_count === 1 ? "repo" : "repos" },
-    { value: `${profile.language_count}`, label: "langs" },
-  ];
-  if (profile.total_stars > 0)
-    stats.push({ value: `${compact(profile.total_stars)}★`, label: "stars" });
+  const stats = profileStats(profile);
 
   return (
     <div

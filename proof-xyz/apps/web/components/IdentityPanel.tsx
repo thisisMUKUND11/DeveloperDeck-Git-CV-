@@ -1,19 +1,11 @@
 import type { Profile } from "@/lib/api";
+import { profileStats } from "@/lib/profileStats";
 import type { Theme } from "@/lib/themes";
-
-function compact(n: number): string {
-  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "")}k` : `${n}`;
-}
 
 /** The identity column shown on desktop (left sidebar). Same facts as the
  *  mobile TL;DR card, laid out vertically for a sidebar. */
 export function IdentityPanel({ profile, theme }: { profile: Profile; theme: Theme }) {
-  const stats: { value: string; label: string }[] = [
-    { value: `${profile.public_count}`, label: profile.public_count === 1 ? "repo" : "repos" },
-    { value: `${profile.language_count}`, label: "langs" },
-  ];
-  if (profile.total_stars > 0)
-    stats.push({ value: `${compact(profile.total_stars)}★`, label: "stars" });
+  const stats = profileStats(profile);
 
   return (
     <div className="flex flex-col gap-5">
