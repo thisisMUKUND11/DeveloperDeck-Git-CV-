@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useTransform,
-  type PanInfo,
-} from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 
 // Kept intentionally low so a short, gentle swipe still registers on phones.
@@ -56,7 +50,7 @@ function DraggableSlide({
       {canNext && (
         <motion.div
           style={{ opacity: nextHint }}
-          className="pointer-events-none absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-white shadow-lg"
+          className="pointer-events-none absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-accent px-3 py-1 text-xs font-bold text-white shadow-lg"
         >
           NEXT →
         </motion.div>
@@ -64,7 +58,7 @@ function DraggableSlide({
       {canPrev && (
         <motion.div
           style={{ opacity: prevHint }}
-          className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-[var(--ink)] px-3 py-1 text-xs font-bold text-[var(--bg)] shadow-lg"
+          className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-surface shadow-lg"
         >
           ← BACK
         </motion.div>
@@ -87,7 +81,7 @@ function ArrowButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={dir === 1 ? "Next" : "Previous"}
-      className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--ink)]/20 bg-[var(--surface)] text-lg text-[var(--ink)] shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-25 sm:flex"
+      className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink/20 bg-surface text-lg text-ink shadow-sm transition hover:border-accent hover:text-accent disabled:opacity-25 sm:flex"
     >
       {dir === 1 ? "→" : "←"}
     </button>
@@ -128,7 +122,7 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
       {/* Story-style segmented progress bar: fills up to the current slide and
           each segment is tappable to jump. Reads as a "reel" and doubles as the
           position indicator (replaces the old dots). */}
-      <div className="flex w-full max-w-[340px] gap-1.5">
+      <div className="flex w-full max-w-[340px] md:max-w-[420px] gap-1.5">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -136,9 +130,9 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
             aria-label={`Go to slide ${i + 1}`}
             className="group flex-1 py-1.5"
           >
-            <span className="block h-1 overflow-hidden rounded-full bg-[var(--ink)]/12">
+            <span className="block h-1 overflow-hidden rounded-full bg-ink/12">
               <motion.span
-                className="block h-full rounded-full bg-[var(--accent)]"
+                className="block h-full rounded-full bg-accent"
                 initial={false}
                 animate={{ width: i <= index ? "100%" : "0%" }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
@@ -151,7 +145,7 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
       <div className="flex w-full items-center justify-center gap-2 sm:gap-3">
         <ArrowButton dir={-1} disabled={atStart} onClick={() => go(-1)} />
 
-        <div className="relative h-[66vh] max-h-[520px] min-h-[400px] w-full max-w-[340px]">
+        <div className="relative h-[66vh] max-h-[520px] min-h-[400px] md:max-h-[600px] w-full max-w-[340px] md:max-w-[420px]">
           {/* Two peeked cards behind the top one give the stack real depth. */}
           {slides[index + 2] && (
             <div className="pointer-events-none absolute inset-0 translate-y-6 scale-[0.9] opacity-25">
@@ -186,24 +180,24 @@ export function CardStack({ slides }: { slides: ReactNode[] }) {
 
       {/* Mobile: explicit Back / Next buttons so navigation never depends on
           the swipe gesture (the side arrows are hidden below the sm breakpoint). */}
-      <div className="flex w-full max-w-[340px] items-center gap-3 sm:hidden">
+      <div className="flex w-full max-w-[340px] md:max-w-[420px] items-center gap-3 sm:hidden">
         <button
           onClick={() => go(-1)}
           disabled={atStart}
-          className="flex-1 rounded-xl border border-[var(--ink)]/20 bg-[var(--surface)] py-3 font-display text-sm font-semibold text-[var(--ink)] transition active:scale-95 disabled:opacity-30"
+          className="flex-1 rounded-xl border border-ink/20 bg-surface py-3 font-display text-sm font-semibold text-ink transition active:scale-95 disabled:opacity-30"
         >
           ← Back
         </button>
         <button
           onClick={() => go(1)}
           disabled={atEnd}
-          className="flex-1 rounded-xl bg-[var(--accent)] py-3 font-display text-sm font-semibold text-white shadow-md shadow-[var(--accent)]/25 transition active:scale-95 disabled:opacity-30"
+          className="flex-1 rounded-xl bg-accent py-3 font-display text-sm font-semibold text-white shadow-md shadow-accent/25 transition active:scale-95 disabled:opacity-30"
         >
           Next →
         </button>
       </div>
 
-      <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
+      <div className="flex items-center gap-3 text-xs text-muted">
         <span className="font-mono">
           {index + 1} / {slides.length}
         </span>

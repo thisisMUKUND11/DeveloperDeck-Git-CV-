@@ -35,6 +35,15 @@ export interface Profile {
   shared: boolean;
 }
 
+// FastAPI errors are {detail: string}, except request-validation errors (422),
+// where detail is a list of field errors — never surface that raw.
+async function errorMessage(res: Response, fallback: string): Promise<string> {
+  const body = await res.json().catch(() => ({}));
+  if (typeof body.detail === "string") return body.detail;
+  if (res.status === 422) return "That doesn't look like a valid GitHub username.";
+  return `${fallback} (${res.status})`;
+}
+
 export async function getProfile(username: string): Promise<Profile | null> {
   const res = await fetch(`${API_BASE}/api/profile/${username}`, {
     // Always fetch fresh — profiles are regenerated on demand.
@@ -55,10 +64,7 @@ export async function generateProfile(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, theme, token: token || null }),
   });
-  if (!res.ok) {
-    const detail = await res.json().catch(() => ({}));
-    throw new Error(detail.detail ?? `Generation failed (${res.status})`);
-  }
+  if (!res.ok) throw new Error(await errorMessage(res, "Generation failed"));
   return res.json();
 }
 
@@ -72,10 +78,7 @@ export async function createShare(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, repos, theme }),
   });
-  if (!res.ok) {
-    const detail = await res.json().catch(() => ({}));
-    throw new Error(detail.detail ?? `Could not create link (${res.status})`);
-  }
+  if (!res.ok) throw new Error(await errorMessage(res, "Could not create link"));
   const data = await res.json();
   return data.token as string;
 }

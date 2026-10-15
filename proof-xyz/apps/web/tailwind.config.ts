@@ -1,13 +1,25 @@
 import type { Config } from "tailwindcss";
 
+// Theme colours live in CSS custom properties (see lib/themes.ts). Tailwind 3
+// can't apply an opacity modifier to an arbitrary `[var(--x)]` value — classes
+// like `border-[var(--ink)]/10` silently generate nothing. Registering each
+// variable through color-mix() makes `border-ink/10`, `bg-accent/15`, etc. work.
+const themed = (name: string) =>
+  `color-mix(in srgb, var(--${name}) calc(<alpha-value> * 100%), transparent)`;
+
 const config: Config = {
-  content: [
-    "./app/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./lib/**/*.{ts,tsx}",
-  ],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      colors: {
+        ink: themed("ink"),
+        muted: themed("muted"),
+        accent: themed("accent"),
+        surface: themed("surface"),
+        chip: themed("chip"),
+        "chip-ink": themed("chip-ink"),
+      },
+      opacity: { 12: "0.12", 18: "0.18" },
       fontFamily: {
         body: ["var(--font-body)", "system-ui", "sans-serif"],
         sans: ["var(--font-body)", "system-ui", "sans-serif"],

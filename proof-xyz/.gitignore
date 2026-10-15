@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 .venv/
 *.db
+*.db-wal
+*.db-shm
+.pytest_cache/
+.ruff_cache/
 
 # Env
 .env
@@ -13,6 +17,7 @@ node_modules/
 .next/
 out/
 npm-debug.log*
+*.tsbuildinfo
 
 # OS
 .DS_Store

@@ -1,4 +1,3 @@
-
 """Async GitHub ingestion.
 
 Works against the public REST API with no auth (rate-limited to 60 req/hr).
@@ -12,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+from urllib.parse import quote
 
 import httpx
 
@@ -30,8 +30,10 @@ GITHUB_API = "https://api.github.com"
 # in-flight requests (keeps us polite and within the time budget).
 _CONCURRENCY = 8
 
-# Dependency manifests worth fetching per repo, in priority order.
-MANIFEST_PATHS = [
+# Dependency manifest filenames worth reading, in priority order. They're
+# located via one recursive tree listing per repo, so a manifest in a subfolder
+# (e.g. apps/api/requirements.txt) is found, and absent ones cost no request.
+MANIFEST_NAMES = [
     "requirements.txt",
     "package.json",
     "pyproject.toml",
@@ -40,6 +42,12 @@ MANIFEST_PATHS = [
     "Cargo.toml",
     "pubspec.yaml",
 ]
+# Vendored / generated folders whose manifests describe someone else's code.
+_SKIP_DIRS = {"node_modules", "vendor", ".venv", "venv", "dist", "build", "site-packages"}
+# Most repos have 1-2 manifests; the cap bounds monorepos.
+_MAX_MANIFESTS = 4
+# Lockfile-sized manifests add nothing past this point for skill matching.
+_MAX_MANIFEST_CHARS = 20_000
 
 
 def _headers(token: str | None) -> dict[str, str]:
@@ -55,7 +63,8 @@ def _headers(token: str | None) -> dict[str, str]:
 
 async def _get_json(client: httpx.AsyncClient, url: str, **kwargs):
     resp = await client.get(url, **kwargs)
-    if resp.status_code == 404:
+    # 404: missing. 409: empty repository (no commits, so no tree/contents).
+    if resp.status_code in (404, 409):
         return None
     resp.raise_for_status()
     return resp.json()
@@ -124,21 +133,49 @@ async def _fetch_readme_excerpt(
     return cleaned[:4000].strip() or None
 
 
+def _manifest_paths(tree: dict) -> list[str]:
+    """Pick the manifests to read from a recursive tree listing: shallowest
+    first, then by MANIFEST_NAMES priority, skipping vendored folders."""
+    found: list[str] = []
+    for entry in tree.get("tree", []):
+        if entry.get("type") != "blob":
+            continue
+        parts = entry["path"].split("/")
+        if parts[-1] in MANIFEST_NAMES and not _SKIP_DIRS.intersection(parts[:-1]):
+            found.append(entry["path"])
+    found.sort(key=lambda p: (p.count("/"), MANIFEST_NAMES.index(p.rsplit("/", 1)[-1])))
+    return found[:_MAX_MANIFESTS]
+
+
 async def _fetch_manifests_text(
-    client: httpx.AsyncClient, full_name: str, headers: dict[str, str]
+    client: httpx.AsyncClient, raw: dict, headers: dict[str, str]
 ) -> str:
+    full_name = raw["full_name"]
+    branch = quote(raw.get("default_branch") or "HEAD", safe="")
+    tree = await _get_json(
+        client,
+        f"{GITHUB_API}/repos/{full_name}/git/trees/{branch}",
+        headers=headers,
+        params={"recursive": "1"},
+    )
+    if not tree:
+        return ""
+
     async def one(path: str) -> str:
         data = await _get_json(
-            client, f"{GITHUB_API}/repos/{full_name}/contents/{path}", headers=headers
+            client,
+            f"{GITHUB_API}/repos/{full_name}/contents/{quote(path)}",
+            headers=headers,
         )
         if data and isinstance(data, dict) and data.get("content"):
             try:
-                return base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
+                text = base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
             except Exception:
                 return ""
+            return text[:_MAX_MANIFEST_CHARS]
         return ""
 
-    chunks = await asyncio.gather(*(one(p) for p in MANIFEST_PATHS))
+    chunks = await asyncio.gather(*(one(p) for p in _manifest_paths(tree)))
     return "\n".join(c for c in chunks if c)
 
 
@@ -168,7 +205,7 @@ async def _enrich_public_repo(
         languages_data, readme, manifests = await asyncio.gather(
             _get_json(client, f"{GITHUB_API}/repos/{full_name}/languages", headers=headers),
             _fetch_readme_excerpt(client, full_name, headers),
-            _fetch_manifests_text(client, full_name, headers),
+            _fetch_manifests_text(client, raw, headers),
         )
     languages = list(languages_data.keys()) if languages_data else []
     topics = raw.get("topics", []) or []

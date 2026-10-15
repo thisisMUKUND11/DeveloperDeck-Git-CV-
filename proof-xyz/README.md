@@ -68,6 +68,21 @@ configured), pick a theme, and you land on `/<username>` with the swipeable deck
 > On Windows paths containing spaces/`&`, npm's script shim can fail. Run Next
 > directly instead: `node ./node_modules/next/dist/bin/next dev`.
 
+## Checks
+
+```bash
+# web (apps/web)
+npm run check        # eslint + tsc --noEmit + prettier --check
+npm run format       # apply Prettier
+
+# api (apps/api)
+pip install -r requirements-dev.txt
+ruff check . && ruff format --check .
+pytest -q
+```
+
+The same checks run in CI on every push and PR (`.github/workflows/ci.yml`).
+
 ## API surface
 
 | Method | Path | Purpose |

@@ -1,0 +1,20 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# pycodestyle errors, pyflakes, import sorting, bugbear, pyupgrade.
+select = ["E", "F", "I", "B", "UP"]
+# B008: FastAPI's Depends()/Path() in defaults is the intended idiom.
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# Field descriptions there are prompt prose sent to the LLM; wrapping them only
+# adds noise.
+"app/schemas.py" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

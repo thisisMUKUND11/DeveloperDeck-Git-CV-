@@ -46,6 +46,11 @@ path.
    | `WEB_BASE_URL` | `https://<your-vercel-domain>` | your Vercel URL; comma-separate extras |
    | `API_BASE_URL` | `https://<your-render-service>.onrender.com` | this service's own URL |
    | `DATABASE_URL` | *Neon/Supabase connection string* | from Step 0 — makes share links durable |
+   | `ENABLE_DOCS` | `false` | hides `/docs` and `/openapi.json` in production |
+
+   Optional tuning (defaults shown): `GENERATE_RATE_LIMIT=5` per
+   `GENERATE_RATE_WINDOW=600` seconds per IP, `REGENERATE_COOLDOWN=600`,
+   `LLM_TIMEOUT=90`, `LLM_BATCH_SIZE=12`.
 
    OAuth is optional — skip `GITHUB_CLIENT_ID/SECRET` unless you want one-click
    GitHub login. A `GITHUB_TOKEN` is recommended to raise GitHub's 60/hr limit.
@@ -75,6 +80,28 @@ path.
    Leave `NEXT_PUBLIC_API_BASE_URL` **empty** so the browser uses same-origin
    `/api/*` (proxied via Vercel).
 4. Deploy. Open your Vercel URL, enter a GitHub username, pick a theme.
+
+---
+
+## Scaling out (load balancing)
+
+The API is stateless apart from two things, both externalised:
+
+- **Data** lives in Postgres (`DATABASE_URL`) — SQLite can't be shared.
+- **Rate limits, the regenerate cooldown and per-username generation locks**
+  live in Redis when `REDIS_URL` is set (Upstash has a free tier). Without it
+  they're per-process, which is only correct for one instance with one worker.
+
+With both set you can:
+
+- raise `WEB_CONCURRENCY` (uvicorn worker processes per instance), and/or
+- run several instances — Render's load balancer spreads requests across them
+  (multiple instances need a paid plan; Railway/Fly work the same way).
+
+`GET /api/health` reports `"coordination": "redis"` and `"coordination_ok"`, so
+the platform health check catches a broken Redis connection. Each instance
+opens up to 5 Postgres connections per worker; size Neon/Supabase limits
+(or use their pooled connection string) accordingly.
 
 ---
 

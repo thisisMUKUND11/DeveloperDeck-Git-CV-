@@ -7,13 +7,13 @@ export function Credit({ className = "" }: { className?: string }) {
   const isExternal = /^https?:/i.test(AUTHOR_URL);
   const year = new Date().getFullYear();
   return (
-    <div className={`flex flex-col gap-0.5 text-[11px] text-[var(--muted)] ${className}`}>
+    <div className={`flex flex-col gap-0.5 text-[11px] text-muted ${className}`}>
       <p>
         Designed &amp; developed by{" "}
         <a
           href={AUTHOR_URL}
           {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-          className="font-medium text-[var(--ink)] underline-offset-2 transition hover:text-[var(--accent)] hover:underline"
+          className="font-medium text-ink underline-offset-2 transition hover:text-accent hover:underline"
         >
           {AUTHOR}
         </a>

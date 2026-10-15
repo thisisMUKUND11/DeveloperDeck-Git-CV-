@@ -21,8 +21,7 @@ const serif = Fraunces({
 });
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_PUBLIC_BASE_URL ||
-  "https://developer-deck-git-cv.vercel.app";
+  process.env.NEXT_PUBLIC_PUBLIC_BASE_URL || "https://developer-deck-git-cv.vercel.app";
 
 const DESCRIPTION =
   "Turn your GitHub into a swipeable, recruiter-ready proof-of-work portfolio in seconds.";
@@ -59,16 +58,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${display.variable} ${body.variable} ${serif.variable}`}
-    >
+    <html lang="en" className={`${display.variable} ${body.variable} ${serif.variable}`}>
       <body className="font-body antialiased">
         {children}
         <Analytics />

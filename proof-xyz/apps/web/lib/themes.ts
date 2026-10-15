@@ -17,8 +17,7 @@ export const THEMES: Theme[] = [
     label: "Midnight",
     description: "Premium dark with an electric indigo accent.",
     vars: {
-      "--bg":
-        "radial-gradient(900px 520px at 50% -8%, #1b1f30 0%, #0c0e16 58%, #08090f 100%)",
+      "--bg": "radial-gradient(900px 520px at 50% -8%, #1b1f30 0%, #0c0e16 58%, #08090f 100%)",
       "--surface": "rgba(23,26,38,0.92)",
       "--ink": "#eef1f8",
       "--muted": "#8b92a6",
@@ -61,7 +60,7 @@ export const THEMES: Theme[] = [
       "--chip-ink": "#c23a22",
     },
     cardClass:
-      "rounded-3xl border border-[var(--accent)]/18 shadow-[0_26px_55px_-24px_rgba(251,93,59,0.5)] backdrop-blur-sm",
+      "rounded-3xl border border-accent/18 shadow-[0_26px_55px_-24px_rgba(251,93,59,0.5)] backdrop-blur-sm",
     fontClass: "font-display",
   },
   {
@@ -69,8 +68,7 @@ export const THEMES: Theme[] = [
     label: "Terminal",
     description: "Hacker-green monospace on near-black.",
     vars: {
-      "--bg":
-        "radial-gradient(900px 520px at 50% -8%, #0e1a12 0%, #07100a 60%, #050b07 100%)",
+      "--bg": "radial-gradient(900px 520px at 50% -8%, #0e1a12 0%, #07100a 60%, #050b07 100%)",
       "--surface": "rgba(10,20,14,0.92)",
       "--ink": "#d6f5df",
       "--muted": "#5f8f73",
@@ -84,6 +82,9 @@ export const THEMES: Theme[] = [
   },
 ];
 
+// The fallback for unknown/legacy theme ids.
+export const DEFAULT_THEME: Theme = THEMES[0]!;
+
 export function getTheme(id: string): Theme {
-  return THEMES.find((t) => t.id === id) ?? THEMES[0];
+  return THEMES.find((t) => t.id === id) ?? DEFAULT_THEME;
 }

@@ -49,7 +49,8 @@ export function SharePanel({
     reset();
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(repo) ? next.delete(repo) : next.add(repo);
+      if (next.has(repo)) next.delete(repo);
+      else next.add(repo);
       return next;
     });
   };
@@ -70,7 +71,9 @@ export function SharePanel({
       setToken(tok);
       setLink(url);
       setViews(0);
-      QRCode.toDataURL(url, { width: 240, margin: 1 }).then(setQr).catch(() => {});
+      QRCode.toDataURL(url, { width: 240, margin: 1 })
+        .then(setQr)
+        .catch(() => {});
       try {
         await navigator.clipboard.writeText(url);
         setCopied(true);
@@ -93,7 +96,8 @@ export function SharePanel({
     <div className="w-full max-w-md">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-5 py-3.5 font-display font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-[0.98]"
+        aria-expanded={open}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3.5 font-display font-semibold text-white shadow-lg shadow-accent/25 transition hover:brightness-105 active:scale-[0.98]"
       >
         🔗 Get a shareable link
         <span className={`transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
@@ -107,14 +111,12 @@ export function SharePanel({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-[var(--ink)]/12 bg-[var(--surface)] p-4">
+            <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-ink/12 bg-surface p-4">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-[var(--ink)]">
-                  Pick what recruiters will see
-                </p>
+                <p className="text-sm font-semibold text-ink">Pick what recruiters will see</p>
                 <button
                   onClick={() => setAll(!allOn)}
-                  className="shrink-0 text-xs font-semibold text-[var(--accent)]"
+                  className="shrink-0 text-xs font-semibold text-accent"
                 >
                   {allOn ? "Clear all" : "Select all"}
                 </button>
@@ -127,29 +129,22 @@ export function SharePanel({
                     <button
                       key={c.repo}
                       onClick={() => toggle(c.repo)}
+                      aria-pressed={on}
                       className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${
-                        on
-                          ? "border-[var(--accent)]/60 bg-[var(--accent)]/10"
-                          : "border-[var(--ink)]/10 opacity-55"
+                        on ? "border-accent/60 bg-accent/10" : "border-ink/10 opacity-55"
                       }`}
                     >
                       <span
                         className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                          on
-                            ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-                            : "border-[var(--muted)]"
+                          on ? "border-accent bg-accent text-white" : "border-muted"
                         }`}
                       >
                         {on && <span className="text-[10px] leading-none">✓</span>}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-mono text-sm text-[var(--ink)]">
-                          {c.repo}
-                        </span>
+                        <span className="block truncate font-mono text-sm text-ink">{c.repo}</span>
                         {c.summary && (
-                          <span className="block truncate text-xs text-[var(--muted)]">
-                            {c.summary}
-                          </span>
+                          <span className="block truncate text-xs text-muted">{c.summary}</span>
                         )}
                       </span>
                     </button>
@@ -160,7 +155,7 @@ export function SharePanel({
               <button
                 onClick={copyLink}
                 disabled={busy || selected.size === 0}
-                className="rounded-xl bg-[var(--accent)] py-3 font-display text-sm font-semibold text-white shadow-md shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-[0.98] disabled:opacity-40"
+                className="rounded-xl bg-accent py-3 font-display text-sm font-semibold text-white shadow-md shadow-accent/25 transition hover:brightness-105 active:scale-[0.98] disabled:opacity-40"
               >
                 {busy
                   ? "Creating link…"
@@ -177,8 +172,8 @@ export function SharePanel({
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col gap-2"
                 >
-                  <div className="flex items-center overflow-hidden rounded-xl border border-[var(--ink)]/15 bg-[var(--bg)] px-3 py-2.5">
-                    <span className="truncate font-mono text-xs text-[var(--ink)]">
+                  <div className="flex items-center overflow-hidden rounded-xl border border-ink/15 bg-ink/5 px-3 py-2.5">
+                    <span className="truncate font-mono text-xs text-ink">
                       {link.replace(/^https?:\/\//, "")}
                     </span>
                   </div>
@@ -187,14 +182,14 @@ export function SharePanel({
                   <div className="flex items-center justify-between gap-2 text-xs">
                     <button
                       onClick={refreshViews}
-                      className="flex items-center gap-1.5 text-[var(--muted)] transition hover:text-[var(--ink)]"
+                      className="flex items-center gap-1.5 text-muted transition hover:text-ink"
                     >
                       👁 Opened {views ?? 0} {views === 1 ? "time" : "times"}
-                      <span className="text-[var(--accent)]">↻</span>
+                      <span className="text-accent">↻</span>
                     </button>
                     <button
                       onClick={() => setShowQr((s) => !s)}
-                      className="font-semibold text-[var(--accent)]"
+                      className="font-semibold text-accent"
                     >
                       {showQr ? "Hide QR" : "Show QR"}
                     </button>
@@ -211,16 +206,16 @@ export function SharePanel({
                       <a
                         href={qr}
                         download={`${username}-${BRAND_SLUG}-qr.png`}
-                        className="text-xs font-semibold text-[var(--accent)]"
+                        className="text-xs font-semibold text-accent"
                       >
                         Download QR ↓
                       </a>
                     </motion.div>
                   )}
 
-                  <p className="text-[11px] text-[var(--muted)]">
-                    Paste it on your résumé. Each link is unique and only reveals the
-                    selected projects — change the picks and copy again for a new one.
+                  <p className="text-[11px] text-muted">
+                    Paste it on your résumé. Each link is unique and only reveals the selected
+                    projects — change the picks and copy again for a new one.
                   </p>
                 </motion.div>
               )}

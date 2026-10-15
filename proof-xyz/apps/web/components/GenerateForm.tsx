@@ -17,6 +17,8 @@ const STEPS = [
   "Designing your deck…",
 ];
 
+const GITHUB_USERNAME = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}$/;
+
 export function GenerateForm({ theme }: { theme: string }) {
   const router = useRouter();
   // Seed from UI memory so the handle persists across navigation (resets on refresh).
@@ -41,6 +43,11 @@ export function GenerateForm({ theme }: { theme: string }) {
     e.preventDefault();
     const handle = username.trim().replace(/^@/, "");
     if (!handle) return;
+    // Same rule the API enforces (apps/api/app/schemas.py USERNAME_PATTERN).
+    if (!GITHUB_USERNAME.test(handle)) {
+      setError("That doesn't look like a valid GitHub username.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -61,7 +68,7 @@ export function GenerateForm({ theme }: { theme: string }) {
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="absolute inset-0 rounded-xl border-2 border-[var(--ink)] bg-[var(--surface)]"
+              className="absolute inset-0 rounded-xl border-2 border-ink bg-surface"
               animate={{ rotate: [(i - 1) * 8, (i - 1) * 8 + 4, (i - 1) * 8], y: [0, -4, 0] }}
               transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.15 }}
               style={{ zIndex: 3 - i }}
@@ -74,14 +81,14 @@ export function GenerateForm({ theme }: { theme: string }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="text-sm font-medium text-[var(--ink)]"
+            className="text-sm font-medium text-ink"
           >
             {STEPS[step]}
           </motion.p>
         </AnimatePresence>
-        <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-[var(--ink)]/10">
+        <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-ink/10">
           <motion.div
-            className="h-full rounded-full bg-[var(--accent)]"
+            className="h-full rounded-full bg-accent"
             initial={{ width: "8%" }}
             animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
             transition={{ ease: "easeOut" }}
@@ -99,24 +106,23 @@ export function GenerateForm({ theme }: { theme: string }) {
       transition={{ delay: 0.25 }}
       className="flex w-full max-w-md flex-col gap-3"
     >
-      <div className="flex overflow-hidden rounded-2xl border border-[var(--ink)]/15 bg-[var(--surface)] transition focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/30">
-        <span className="flex items-center pl-4 font-mono text-sm text-[var(--muted)]">
-          github.com/
-        </span>
+      <div className="flex overflow-hidden rounded-2xl border border-ink/15 bg-surface transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
+        <span className="flex items-center pl-4 font-mono text-sm text-muted">github.com/</span>
         <input
           value={username}
           onChange={(e) => onUsernameChange(e.target.value)}
           placeholder="your-username"
+          aria-label="GitHub username"
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
-          className="flex-1 bg-transparent px-2 py-4 text-lg text-[var(--ink)] outline-none placeholder:text-[var(--muted)]/60"
+          className="flex-1 bg-transparent px-2 py-4 text-lg text-ink outline-none placeholder:text-muted/60"
         />
       </div>
 
       <button
         type="submit"
-        className="rounded-2xl bg-[var(--accent)] py-4 font-display text-lg font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-[0.98]"
+        className="rounded-2xl bg-accent py-4 font-display text-lg font-semibold text-white shadow-lg shadow-accent/25 transition hover:brightness-105 active:scale-[0.98]"
       >
         Roll my reel →
       </button>

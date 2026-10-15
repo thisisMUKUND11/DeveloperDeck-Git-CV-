@@ -1,6 +1,17 @@
 from __future__ import annotations
 
+from typing import Annotated, Literal
+
 from pydantic import BaseModel, Field
+
+# GitHub logins: alphanumerics and hyphens, 1-39 chars, not starting with a
+# hyphen. Validating this up front means a username can never smuggle a path
+# ("foo/../repos/x") into the GitHub API URLs we build from it.
+USERNAME_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9-]{0,38}$"
+
+Username = Annotated[str, Field(pattern=USERNAME_PATTERN)]
+# Must match the theme ids in apps/web/lib/themes.ts.
+ThemeId = Literal["midnight", "paper", "sunset", "terminal"]
 
 
 # --- Raw ingestion shapes -------------------------------------------------
@@ -119,14 +130,14 @@ class Profile(BaseModel):
 
 
 class GenerateRequest(BaseModel):
-    username: str
-    theme: str = "midnight"
+    username: Username
+    theme: ThemeId = "midnight"
     # Optional token to lift rate limits / read private repos for this run.
-    token: str | None = None
+    token: str | None = Field(default=None, max_length=255)
 
 
 class ShareRequest(BaseModel):
-    username: str
+    username: Username
     # Repo names the owner chose to include in this shared link.
-    repos: list[str] = Field(default_factory=list)
-    theme: str = "midnight"
+    repos: list[Annotated[str, Field(max_length=100)]] = Field(default_factory=list, max_length=100)
+    theme: ThemeId = "midnight"

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import { BRAND, BRAND_TAGLINE } from "@/lib/brand";
-import { THEMES, getTheme } from "@/lib/themes";
+import { DEFAULT_THEME, THEMES, getTheme } from "@/lib/themes";
 import { Credit } from "./Credit";
 import { GenerateForm } from "./GenerateForm";
 import { UseCases } from "./UseCases";
@@ -13,7 +13,7 @@ import { UseCases } from "./UseCases";
 const WORDS = ["pitch", "portfolio", "case study", "flex"];
 
 export function Landing() {
-  const [themeId, setThemeId] = useState(THEMES[0].id);
+  const [themeId, setThemeId] = useState(DEFAULT_THEME.id);
   const theme = getTheme(themeId);
   const [word, setWord] = useState(0);
 
@@ -35,8 +35,7 @@ export function Landing() {
         style={{
           backgroundImage: "radial-gradient(var(--ink) 1px, transparent 1px)",
           backgroundSize: "22px 22px",
-          maskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 35%, black 35%, transparent 100%)",
+          maskImage: "radial-gradient(ellipse 80% 60% at 50% 35%, black 35%, transparent 100%)",
           opacity: 0.06,
         }}
       />
@@ -58,10 +57,10 @@ export function Landing() {
               className="h-20 w-20 rounded-[22px] object-cover shadow-[0_10px_40px_-10px_var(--accent)] ring-1 ring-white/10"
             />
             <div className="flex flex-col items-center gap-1">
-              <span className="font-display text-xl font-bold tracking-tight text-[var(--ink)]">
+              <span className="font-display text-xl font-bold tracking-tight text-ink">
                 {BRAND}
               </span>
-              <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+              <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted">
                 {BRAND_TAGLINE}
               </span>
             </div>
@@ -82,7 +81,7 @@ export function Landing() {
                   animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                   exit={{ y: "-0.5em", opacity: 0, filter: "blur(6px)" }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  className="inline-block text-[var(--accent)]"
+                  className="inline-block text-accent"
                 >
                   {WORDS[word]}.
                 </motion.span>
@@ -91,12 +90,11 @@ export function Landing() {
           </h1>
 
           <p
-            className="animate-fade-up max-w-md text-[15px] leading-relaxed text-[var(--muted)]"
+            className="animate-fade-up max-w-md text-[15px] leading-relaxed text-muted"
             style={{ animationDelay: "150ms" }}
           >
-            We read your repositories — the languages, the dependencies, the
-            READMEs — and turn them into a swipeable deck a recruiter actually
-            finishes. In about 30 seconds.
+            We read your repositories — the languages, the dependencies, the READMEs — and turn them
+            into a swipeable deck a recruiter actually finishes. In about 30 seconds.
           </p>
         </div>
 
@@ -106,18 +104,17 @@ export function Landing() {
           className="animate-fade-up flex flex-col items-center gap-2"
           style={{ animationDelay: "220ms" }}
         >
-          <span className="text-[11px] uppercase tracking-widest text-[var(--muted)]">
-            Pick a vibe
-          </span>
+          <span className="text-[11px] uppercase tracking-widest text-muted">Pick a vibe</span>
           <div className="flex flex-wrap justify-center gap-2">
             {THEMES.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setThemeId(t.id)}
+                aria-pressed={themeId === t.id}
                 className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
                   themeId === t.id
-                    ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
-                    : "border-[var(--ink)]/20 text-[var(--muted)] hover:border-[var(--ink)]/45"
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-ink/20 text-muted hover:border-ink/45"
                 }`}
               >
                 <span
@@ -134,7 +131,7 @@ export function Landing() {
         <GenerateForm theme={themeId} />
 
         <div
-          className="animate-fade-up flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-medium text-[var(--muted)]"
+          className="animate-fade-up flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-medium text-muted"
           style={{ animationDelay: "320ms" }}
         >
           <span>● You choose what’s shared</span>
@@ -144,7 +141,7 @@ export function Landing() {
 
         <a
           href="#how-it-works"
-          className="animate-fade-up text-xs font-semibold text-[var(--accent)] underline-offset-4 hover:underline"
+          className="animate-fade-up text-xs font-semibold text-accent underline-offset-4 hover:underline"
           style={{ animationDelay: "380ms" }}
         >
           ↓ See how it works & where to use it

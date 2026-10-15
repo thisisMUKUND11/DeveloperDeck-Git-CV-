@@ -17,6 +17,8 @@ services:
     envVars:
       - key: LLM_PROVIDER
         value: gemini
+      - key: ENABLE_DOCS
+        value: "false"
       - key: GEMINI_API_KEY
         sync: false   # set in the Render dashboard
       - key: WEB_BASE_URL
@@ -26,3 +28,8 @@ services:
       - key: DATABASE_URL
         sync: false   # Neon/Supabase Postgres DSN, e.g.
                       # postgresql://user:pass@host/db?sslmode=require
+      # Optional — only needed to scale past one instance/worker:
+      # - key: REDIS_URL
+      #   sync: false   # e.g. Upstash Redis URL (rediss://...)
+      # - key: WEB_CONCURRENCY
+      #   value: "2"

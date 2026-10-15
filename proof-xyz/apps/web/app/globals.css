@@ -34,6 +34,12 @@ body {
   min-height: 100dvh;
 }
 
+/* Visible keyboard focus in every theme (mouse clicks don't trigger it). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* Tighter heading rhythm for the display font. */
 h1,
 h2 {

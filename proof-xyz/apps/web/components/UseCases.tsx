@@ -45,17 +45,14 @@ const USES: { icon: string; title: string; body: string }[] = [
  *  Theme-aware (inherits the page's CSS variables). */
 export function UseCases() {
   return (
-    <section
-      id="how-it-works"
-      className="mt-24 flex w-full max-w-4xl scroll-mt-8 flex-col gap-14"
-    >
+    <section id="how-it-works" className="mt-24 flex w-full max-w-4xl scroll-mt-8 flex-col gap-14">
       {/* How it works */}
       <div className="flex flex-col gap-8">
         <div className="flex flex-col items-center gap-2 text-center">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
             How it works
           </span>
-          <h2 className="font-display text-2xl font-bold text-[var(--ink)] sm:text-3xl">
+          <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
             From GitHub to a shareable reel in seconds
           </h2>
         </div>
@@ -64,16 +61,12 @@ export function UseCases() {
           {STEPS.map((s, i) => (
             <div
               key={s.title}
-              className="relative flex flex-col gap-3 rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface)] p-5"
+              className="relative flex flex-col gap-3 rounded-2xl border border-ink/10 bg-surface p-5"
             >
-              <span className="absolute right-4 top-4 font-mono text-xs text-[var(--muted)]">
-                0{i + 1}
-              </span>
+              <span className="absolute right-4 top-4 font-mono text-xs text-muted">0{i + 1}</span>
               <span className="text-2xl">{s.icon}</span>
-              <h3 className="font-display text-base font-bold text-[var(--ink)]">
-                {s.title}
-              </h3>
-              <p className="text-sm leading-relaxed text-[var(--muted)]">{s.body}</p>
+              <h3 className="font-display text-base font-bold text-ink">{s.title}</h3>
+              <p className="text-sm leading-relaxed text-muted">{s.body}</p>
             </div>
           ))}
         </div>
@@ -82,25 +75,25 @@ export function UseCases() {
       {/* Where to use it */}
       <div className="flex flex-col gap-8">
         <div className="flex flex-col items-center gap-2 text-center">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
             Where to use it
           </span>
-          <h2 className="font-display text-2xl font-bold text-[var(--ink)] sm:text-3xl">
+          <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
             One link. One QR. Everywhere you apply.
           </h2>
         </div>
 
         {/* Highlighted recruiter angle: no share link needed at all. */}
-        <div className="flex flex-col gap-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/10 p-6 sm:flex-row sm:items-center sm:gap-5">
+        <div className="flex flex-col gap-4 rounded-2xl border border-accent/30 bg-accent/10 p-6 sm:flex-row sm:items-center sm:gap-5">
           <span className="text-3xl">🔎</span>
           <div className="flex flex-col gap-1.5">
-            <h3 className="font-display text-lg font-bold text-[var(--ink)]">
+            <h3 className="font-display text-lg font-bold text-ink">
               Recruiters: just type the username
             </h3>
-            <p className="text-sm leading-relaxed text-[var(--muted)]">
-              Know a candidate&apos;s GitHub handle? Enter it above and instantly see
-              their proof-of-work reel — no waiting for them to send a link, no
-              digging through repositories. It works for anyone with public repos.
+            <p className="text-sm leading-relaxed text-muted">
+              Know a candidate&apos;s GitHub handle? Enter it above and instantly see their
+              proof-of-work reel — no waiting for them to send a link, no digging through
+              repositories. It works for anyone with public repos.
             </p>
           </div>
         </div>
@@ -109,14 +102,12 @@ export function UseCases() {
           {USES.map((u) => (
             <div
               key={u.title}
-              className="flex gap-4 rounded-2xl border border-[var(--ink)]/10 bg-[var(--surface)] p-5"
+              className="flex gap-4 rounded-2xl border border-ink/10 bg-surface p-5"
             >
               <span className="text-2xl">{u.icon}</span>
               <div className="flex flex-col gap-1.5">
-                <h3 className="font-display text-base font-bold text-[var(--ink)]">
-                  {u.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-[var(--muted)]">{u.body}</p>
+                <h3 className="font-display text-base font-bold text-ink">{u.title}</h3>
+                <p className="text-sm leading-relaxed text-muted">{u.body}</p>
               </div>
             </div>
           ))}
@@ -125,12 +116,10 @@ export function UseCases() {
 
       {/* Back-to-top nudge */}
       <div className="flex flex-col items-center gap-3 text-center">
-        <p className="text-sm text-[var(--muted)]">
-          Ready? Roll your own {BRAND} in about 15 seconds.
-        </p>
+        <p className="text-sm text-muted">Ready? Roll your own {BRAND} in about 15 seconds.</p>
         <a
           href="#top"
-          className="rounded-full bg-[var(--accent)] px-6 py-3 font-display text-sm font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-95"
+          className="rounded-full bg-accent px-6 py-3 font-display text-sm font-semibold text-white shadow-lg shadow-accent/25 transition hover:brightness-105 active:scale-95"
         >
           ↑ Try it now
         </a>

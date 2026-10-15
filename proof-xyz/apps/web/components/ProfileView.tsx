@@ -24,7 +24,7 @@ export function ProfileView({
   const hasCards = profile.cards.length > 0;
 
   const privateNote = !readOnly && !profile.private_access && (
-    <p className="max-w-sm text-[11px] leading-relaxed text-[var(--muted)]">
+    <p className="max-w-sm text-[11px] leading-relaxed text-muted">
       🔒 Private repositories aren’t shown — GitHub only reveals them with a
       <span className="font-mono"> repo</span>-scoped token on your own account.
     </p>
@@ -33,18 +33,17 @@ export function ProfileView({
   const pdfButton = (
     <button
       onClick={() => window.print()}
-      className="rounded-full border border-[var(--ink)]/20 px-4 py-1.5 text-xs font-medium text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+      className="rounded-full border border-ink/20 px-4 py-1.5 text-xs font-medium text-muted transition hover:border-accent hover:text-accent"
     >
       ⤓ Save as PDF
     </button>
   );
 
   const footer = (
-    <footer className="flex flex-col gap-1 text-xs text-[var(--muted)]">
+    <footer className="flex flex-col gap-1 text-xs text-muted">
       <span>
         {readOnly ? "Shared via " : ""}
-        <span className="font-semibold text-[var(--ink)]">{BRAND}</span> —{" "}
-        {BRAND_TAGLINE}
+        <span className="font-semibold text-ink">{BRAND}</span> — {BRAND_TAGLINE}
       </span>
       <Credit />
     </footer>
@@ -55,7 +54,7 @@ export function ProfileView({
     <nav className="mb-7 flex w-full max-w-6xl items-center justify-between print:hidden">
       <Link
         href="/"
-        className="inline-flex items-center gap-1.5 font-display text-sm font-semibold text-[var(--ink)] transition hover:text-[var(--accent)]"
+        className="inline-flex items-center gap-1.5 font-display text-sm font-semibold text-ink transition hover:text-accent"
       >
         <span aria-hidden className="text-base">
           ←
@@ -64,7 +63,7 @@ export function ProfileView({
       </Link>
       <Link
         href="/"
-        className="rounded-full bg-[var(--accent)] px-4 py-2 font-display text-sm font-semibold text-white shadow-md shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-95"
+        className="rounded-full bg-accent px-4 py-2 font-display text-sm font-semibold text-white shadow-md shadow-accent/25 transition hover:brightness-105 active:scale-95"
       >
         ✦ Make your own
       </Link>
@@ -73,11 +72,11 @@ export function ProfileView({
 
   const emptyState = (
     <div
-      className={`flex h-[300px] w-full max-w-[380px] flex-col items-center justify-center gap-3 text-center ${theme.cardClass} bg-[var(--surface)] p-8`}
+      className={`flex h-[300px] w-full max-w-[380px] flex-col items-center justify-center gap-3 text-center ${theme.cardClass} bg-surface p-8`}
     >
       <span className="text-4xl">🪺</span>
       <p className="font-display text-lg font-bold">No public builds yet</p>
-      <p className="text-sm text-[var(--muted)]">
+      <p className="text-sm text-muted">
         When @{profile.username} pushes public repositories, they’ll show up here.
       </p>
     </div>
@@ -95,9 +94,9 @@ export function ProfileView({
       {topNav}
 
       {/* ===== Mobile / tablet: centered column with the swipe deck ===== */}
-      <div className="flex w-full max-w-md flex-col items-center gap-6 lg:hidden print:hidden">
+      <div className="flex w-full max-w-md flex-col items-center gap-6 md:max-w-xl lg:hidden print:hidden">
         <header className="animate-fade-up flex flex-col items-center gap-2 text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
+          <p className="font-mono text-xs uppercase tracking-widest text-muted">
             @{profile.username}
           </p>
         </header>

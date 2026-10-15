@@ -16,66 +16,62 @@ export function IntroCard({ profile, theme }: { profile: Profile; theme: Theme }
 
   return (
     <div
-      className={`proof-scroll flex h-full w-full flex-col overflow-y-auto bg-[var(--surface)] ${theme.cardClass} ${theme.fontClass}`}
+      className={`proof-scroll flex h-full w-full flex-col overflow-y-auto bg-surface ${theme.cardClass} ${theme.fontClass}`}
     >
       {/* m-auto centres the block when there's room, and lets it scroll
           (instead of overflowing onto the controls below) when there isn't. */}
-      <div className="m-auto flex flex-col items-center gap-4 p-7 text-center">
+      <div className="m-auto flex flex-col items-center gap-4 p-5 text-center min-[360px]:p-7">
         {profile.avatar_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={profile.avatar_url}
             alt={profile.username}
-            className="h-16 w-16 rounded-full border-2 border-[var(--accent)] object-cover"
+            className="h-16 w-16 rounded-full border-2 border-accent object-cover"
           />
         )}
 
-      <div className="flex flex-col items-center gap-1">
-        <span className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
-          @{profile.username}
-        </span>
-        <h2 className="text-2xl font-bold leading-tight text-[var(--ink)]">
-          {profile.headline || profile.name || profile.username}
-        </h2>
-      </div>
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-mono text-xs uppercase tracking-widest text-muted">
+            @{profile.username}
+          </span>
+          <h2 className="text-xl font-bold leading-tight text-ink min-[360px]:text-2xl">
+            {profile.headline || profile.name || profile.username}
+          </h2>
+        </div>
 
-      {profile.pitch && (
-        <p className="max-w-[18rem] text-[15px] leading-relaxed text-[var(--muted)]">
-          {profile.pitch}
-        </p>
-      )}
+        {profile.pitch && (
+          <p className="max-w-[18rem] text-[15px] leading-relaxed text-muted">{profile.pitch}</p>
+        )}
 
-      {/* Hero stat row */}
-      <div className="flex items-stretch gap-4">
-        {stats.map((s, i) => (
-          <div key={s.label} className="flex items-center gap-4">
-            {i > 0 && <span className="h-8 w-px bg-[var(--ink)]/15" />}
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold leading-none text-[var(--accent)]">
-                {s.value}
-              </span>
-              <span className="mt-1 text-[11px] uppercase tracking-wide text-[var(--muted)]">
-                {s.label}
-              </span>
+        {/* Hero stat row */}
+        <div className="flex items-stretch gap-4">
+          {stats.map((s, i) => (
+            <div key={s.label} className="flex items-center gap-4">
+              {i > 0 && <span className="h-8 w-px bg-ink/15" />}
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold leading-none text-accent">{s.value}</span>
+                <span className="mt-1 text-[11px] uppercase tracking-wide text-muted">
+                  {s.label}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {profile.top_skills.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {profile.top_skills.slice(0, 5).map((s) => (
-            <span
-              key={s}
-              className="rounded-full bg-[var(--chip)] px-3 py-1 text-xs font-medium text-[var(--chip-ink)]"
-            >
-              {s}
-            </span>
           ))}
         </div>
-      )}
 
-        <span className="mt-1 text-xs text-[var(--muted)]">
+        {profile.top_skills.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {profile.top_skills.slice(0, 5).map((s) => (
+              <span
+                key={s}
+                className="rounded-full bg-chip px-3 py-1 text-xs font-medium text-chip-ink"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <span className="mt-1 text-xs text-muted">
           Swipe to explore {profile.public_count}{" "}
           {profile.public_count === 1 ? "project" : "projects"} →
         </span>

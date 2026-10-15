@@ -24,9 +24,7 @@ export function PrintSheet({ profile }: { profile: Profile }) {
           <h1 className="text-[22px] font-bold leading-tight">
             {profile.name || `@${profile.username}`}
           </h1>
-          <span className="text-[10px] uppercase tracking-widest text-gray-400">
-            {BRAND}
-          </span>
+          <span className="text-[10px] uppercase tracking-widest text-gray-400">{BRAND}</span>
         </div>
         {profile.headline && (
           <p className="text-[13px] font-semibold" style={{ color: accent }}>
@@ -63,14 +61,15 @@ export function PrintSheet({ profile }: { profile: Profile }) {
               <h3 className="font-mono text-[13px] font-bold">{c.repo}</h3>
               <span className="shrink-0 text-[10px] text-gray-500">{c.stat}</span>
             </div>
-            {c.summary && (
-              <p className="text-[11.5px] font-medium leading-snug">{c.summary}</p>
-            )}
+            {c.summary && <p className="text-[11.5px] font-medium leading-snug">{c.summary}</p>}
 
             <div className="mt-1.5 grid grid-cols-2 gap-x-5 gap-y-1">
               {c.why.length > 0 && (
                 <div>
-                  <p className="text-[8.5px] font-bold uppercase tracking-wider" style={{ color: accent }}>
+                  <p
+                    className="text-[8.5px] font-bold uppercase tracking-wider"
+                    style={{ color: accent }}
+                  >
                     Why
                   </p>
                   <ul className="ml-3.5 list-disc text-[10.5px] leading-snug text-gray-800">
@@ -82,7 +81,10 @@ export function PrintSheet({ profile }: { profile: Profile }) {
               )}
               {c.how.length > 0 && (
                 <div>
-                  <p className="text-[8.5px] font-bold uppercase tracking-wider" style={{ color: accent }}>
+                  <p
+                    className="text-[8.5px] font-bold uppercase tracking-wider"
+                    style={{ color: accent }}
+                  >
                     How
                   </p>
                   <ul className="ml-3.5 list-disc text-[10.5px] leading-snug text-gray-800">

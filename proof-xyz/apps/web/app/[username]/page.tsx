@@ -4,11 +4,7 @@ import { ProfileView } from "@/components/ProfileView";
 import { getProfileServer } from "@/lib/server";
 import { getTheme } from "@/lib/themes";
 
-export default async function ProfilePage({
-  params,
-}: {
-  params: Promise<{ username: string }>;
-}) {
+export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const profile = await getProfileServer(username);
 
@@ -23,16 +19,15 @@ export default async function ProfilePage({
           <span className="text-5xl">🔍</span>
           <div className="flex flex-col gap-2">
             <h1 className="font-display text-3xl font-bold">
-              No deck yet for{" "}
-              <span className="text-[var(--accent)]">@{username}</span>
+              No deck yet for <span className="text-accent">@{username}</span>
             </h1>
-            <p className="max-w-xs text-[var(--muted)]">
+            <p className="max-w-xs text-muted">
               This profile hasn’t been generated. Build it in ~30 seconds.
             </p>
           </div>
           <Link
             href="/"
-            className="rounded-2xl bg-[var(--accent)] px-6 py-3 font-display font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-[0.98]"
+            className="rounded-2xl bg-accent px-6 py-3 font-display font-semibold text-white shadow-lg shadow-accent/25 transition hover:brightness-105 active:scale-[0.98]"
           >
             Generate {username}’s deck →
           </Link>

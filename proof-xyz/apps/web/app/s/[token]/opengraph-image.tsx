@@ -12,11 +12,7 @@ export const contentType = "image/png";
 // NOTE: Satori (the renderer) requires every <div> with >1 child to set
 // display:flex, and treats interpolated text as multiple children — so any
 // div with mixed text/expressions uses a single template-literal string.
-export default async function Image({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
+export default async function Image({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const profile = await getShareServer(token);
   const t = ogTheme(profile?.theme ?? "midnight");
@@ -28,66 +24,78 @@ export default async function Image({
   const handle = profile?.username ? `@${profile.username}` : "";
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: t.bg,
-          color: t.ink,
-          padding: "70px",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ width: 18, height: 18, borderRadius: 999, background: t.accent, display: "flex" }} />
-          <div style={{ fontSize: 30, fontWeight: 700, display: "flex" }}>{BRAND}</div>
-          <div style={{ fontSize: 24, color: t.muted, display: "flex" }}>
-            {`— ${BRAND_TAGLINE}`}
-          </div>
-          {handle && (
-            <div style={{ fontSize: 24, color: t.muted, display: "flex" }}>{`· ${handle}`}</div>
-          )}
-        </div>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: t.bg,
+        color: t.ink,
+        padding: "70px",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: 999,
+            background: t.accent,
+            display: "flex",
+          }}
+        />
+        <div style={{ fontSize: 30, fontWeight: 700, display: "flex" }}>{BRAND}</div>
+        <div style={{ fontSize: 24, color: t.muted, display: "flex" }}>{`— ${BRAND_TAGLINE}`}</div>
+        {handle && (
+          <div style={{ fontSize: 24, color: t.muted, display: "flex" }}>{`· ${handle}`}</div>
+        )}
+      </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1.05, display: "flex" }}>
-            {name}
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1.05, display: "flex" }}>
+          {name}
+        </div>
+        {profile?.pitch && (
+          <div
+            style={{
+              fontSize: 30,
+              color: t.muted,
+              lineHeight: 1.3,
+              maxWidth: 980,
+              display: "flex",
+            }}
+          >
+            {profile.pitch}
           </div>
-          {profile?.pitch && (
-            <div style={{ fontSize: 30, color: t.muted, lineHeight: 1.3, maxWidth: 980, display: "flex" }}>
-              {profile.pitch}
+        )}
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: "12px" }}>
+          {skills.map((s) => (
+            <div
+              key={s}
+              style={{
+                display: "flex",
+                fontSize: 24,
+                color: t.accent,
+                border: `2px solid ${t.accent}`,
+                borderRadius: 999,
+                padding: "8px 20px",
+              }}
+            >
+              {s}
             </div>
-          )}
+          ))}
         </div>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: "12px" }}>
-            {skills.map((s) => (
-              <div
-                key={s}
-                style={{
-                  display: "flex",
-                  fontSize: 24,
-                  color: t.accent,
-                  border: `2px solid ${t.accent}`,
-                  borderRadius: 999,
-                  padding: "8px 20px",
-                }}
-              >
-                {s}
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize: 28, color: t.muted, display: "flex" }}>
-            {`${repos} repos · ${langs} langs`}
-          </div>
+        <div style={{ fontSize: 28, color: t.muted, display: "flex" }}>
+          {`${repos} repos · ${langs} langs`}
         </div>
       </div>
-    ),
+    </div>,
     { ...size },
   );
 }

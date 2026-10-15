@@ -19,8 +19,7 @@ export async function generateMetadata({
   const who = profile.name || `@${profile.username}`;
   const title = `${who} · ${BRAND}`;
   const description =
-    profile.pitch ||
-    `${profile.headline} — ${profile.public_count} projects on ${BRAND}.`;
+    profile.pitch || `${profile.headline} — ${profile.public_count} projects on ${BRAND}.`;
 
   // Next automatically attaches the opengraph-image.tsx output to both
   // openGraph and twitter; we just set the text + card type.
@@ -32,11 +31,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function SharedPage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
+export default async function SharedPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const profile = await getShareServer(token);
 
@@ -51,13 +46,13 @@ export default async function SharedPage({
           <span className="text-5xl">🔗</span>
           <div className="flex flex-col gap-2">
             <h1 className="font-display text-3xl font-bold">Link not found</h1>
-            <p className="max-w-xs text-[var(--muted)]">
+            <p className="max-w-xs text-muted">
               This shared link is invalid or was replaced by a newer one.
             </p>
           </div>
           <Link
             href="/"
-            className="rounded-2xl bg-[var(--accent)] px-6 py-3 font-display font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:brightness-105 active:scale-[0.98]"
+            className="rounded-2xl bg-accent px-6 py-3 font-display font-semibold text-white shadow-lg shadow-accent/25 transition hover:brightness-105 active:scale-[0.98]"
           >
             Build your own →
           </Link>
